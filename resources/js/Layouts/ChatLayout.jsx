@@ -11,9 +11,9 @@ const ChatLayout = ({ children }) => {
     console.log('selectedConversation', selectedConversations);
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
-    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState({});
 
-    const isUserOnline = (userId) => onlineUsers[userId];
+    const isUserOnline = (userId) => !!onlineUsers[userId];
 
     const onSearch = (ev) => {
         const search = ev.target.value.toLowerCase();
@@ -83,9 +83,9 @@ const ChatLayout = ({ children }) => {
     }, []);
     return (
         <>
-            <div className="flex w-full flex-1 overflow-hidden">
+            <div className="flex w-full h-full flex-1 overflow-hidden">
                 <div
-                    className={`flex w-full flex-col overflow-hidden bg-slate-800 transition-all sm:w-[220px] md:w-[300px] ${selectedConversations ? '-ml-[100%] sm:ml-0' : ''}`}
+                    className={`flex w-full h-full flex-col overflow-hidden bg-slate-800 transition-all sm:w-[220px] md:w-[300px] ${selectedConversations ? '-ml-[100%] sm:ml-0' : ''}`}
                 >
 
                     <div className='flex items-center justify-between py-2 px-3 text-xl'

@@ -1,12 +1,11 @@
 const UserAvatar = ({ user, online = null, profile = false }) => {
-    let onlineClass =
-        online === true ? 'online' : online === false ? 'offline' : '';
     const sizeClass = profile ? 'w-40 h-40' : 'w-8 h-8';
+    const indicatorSize = profile ? 'w-4 h-4' : 'w-2.5 h-2.5';
 
     return (
-        <>
+        <div className="relative">
             {user.avatar_url && (
-                <div className={`avatar ${onlineClass}`}>
+                <div className="avatar">
                     <div className={`rounded-full ${sizeClass}`}>
                         <img src={user.avatar_url} alt={user.name} />
                     </div>
@@ -14,7 +13,7 @@ const UserAvatar = ({ user, online = null, profile = false }) => {
             )}
 
             {!user.avatar_url && (
-                <div className={`avatar placeholder ${onlineClass}`}>
+                <div className="avatar placeholder">
                     <div
                         className={`bg-gray-400 text-gray-800 rounded-full flex items-center justify-center ${sizeClass}`}
                     >
@@ -24,7 +23,14 @@ const UserAvatar = ({ user, online = null, profile = false }) => {
                     </div>
                 </div>
             )}
-        </>
+
+            {online !== null && (
+                <span
+                    className={`absolute bottom-0 right-0 block rounded-full ring-2 ring-slate-800 ${indicatorSize} ${online ? 'bg-green-500' : 'bg-gray-500'
+                        }`}
+                />
+            )}
+        </div>
     );
 };
 

@@ -12,7 +12,7 @@ export default function AuthenticatedLayout({ header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
     return (
-        <div className="min-h-screen bg-base-200">
+        <div className="h-screen flex flex-col bg-base-200 overflow-hidden">
             <nav className="border-b border-base-300 bg-base-100">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -170,7 +170,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="flex-1 overflow-hidden">{children}</main>
         </div>
     );
 }
