@@ -30,7 +30,26 @@ class Conversation extends Model
         })->concat($groups->map(function(Group $group){
             return $group->toConversationArray();
         }));
-            
-        
+    }
+
+    public static function updateConversationWithMessage($user_id1, $user_id2, $message)
+    {
+        $conversation = Conversation::where(function ($query) use ($user_id1, $user_id2) {
+            $query->where('user_id1', $user_id1)
+                ->where('user_id2', $user_id2);
+        })->orWhere(function ($query) use ($user_id1, $user_id2) {
+            $query->where('user_id1', $user_id2)
+                ->where('user_id2', $user_id1);
+        })->first();
+
+        if ($conversation) { $conversation->update(['last_message_id' => $message->id]);}
+        else
+        {
+            Conversation::create([
+                'user_id1' => $user_id1,
+                'user_id2' => $user_id2,
+                'last_message_id' => $message->id,
+            ]);
+        }
     }
 }
