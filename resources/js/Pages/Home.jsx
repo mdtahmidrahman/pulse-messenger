@@ -5,10 +5,12 @@ import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
 import ConversationHeader from '@/Components/App/ConversationHeader';
 import MessageItem from '@/Components/App/MessageItem';
 import MessageInput from '@/Components/App/MessageInput';
+import { useEventBus } from '@/EventBus';
 
 function Home({ selectedConversation = null, messages = null }) {
     const [localMessages, setLocalMessages] = useState([]);
     const messagesContainerRef = useRef(null);
+    const { on } = useEventBus();
 
     useEffect(() => {
         setTimeout(() => {
@@ -18,6 +20,30 @@ function Home({ selectedConversation = null, messages = null }) {
             }
         }, 10);
     }, [selectedConversation, localMessages]);
+
+    useEffect(() => {
+        const offCreated = on('message.created', (message) => {
+            if (
+                selectedConversation &&
+                parseInt(message.group_id) === parseInt(selectedConversation.id)
+            ) {
+                setLocalMessages((prev) => [...prev, message]);
+            } else if (
+                selectedConversation &&
+                parseInt(message.group_id) === 0 &&
+                (parseInt(message.sender_id) ===
+                    parseInt(selectedConversation.id) ||
+                    parseInt(message.receiver_id) ===
+                    parseInt(selectedConversation.id))
+            ) {
+                setLocalMessages((prev) => [...prev, message]);
+            }
+        });
+
+        return () => {
+            offCreated();
+        };
+    }, [selectedConversation]);
 
     useEffect(() => {
         setLocalMessages(messages ? messages.data.reverse() : []);
