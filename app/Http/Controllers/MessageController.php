@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Conversation;
+use App\Models\MessageAttachment;
 use App\Http\Requests\StoreMessageRequest;
 use App\Http\Resources\MessageResource;
-use App\Jobs\SocketMessage;
+use App\Events\SocketMessage;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
@@ -46,14 +50,14 @@ class MessageController extends Controller
     {
         if($message->group_id)
         {
-            $messages = Message::where('created at', '<', $message->created_at)
+            $messages = Message::where('created_at', '<', $message->created_at)
                 ->where('group_id', $message->group_id)
                 ->latest()
                 ->paginate(10);
         }
         else
         {
-            $messages = Message::where('created at', '<', $message->created_at)
+            $messages = Message::where('created_at', '<', $message->created_at)
                 ->where((function ($query) use ($message){
                     $query->where('sender_id', $message->sender_id)
                         ->where('receiver_id', $message->receiver_id)
@@ -68,38 +72,53 @@ class MessageController extends Controller
 
     public function store(StoreMessageRequest $request)
     {
-        $data = $request->validated();
-        $data['sender_id'] = auth()->id();
-        $receiverId = $data['receiver_id'] ?? null;
-        $groupId = $data['group_id'] ?? null;
-        $files = $data['attachments'] ?? [];
+        try {
+            $data = $request->validated();
+            $data['sender_id'] = auth()->id();
+            $receiverId = $data['receiver_id'] ?? null;
+            $groupId = $data['group_id'] ?? null;
+            $files = $data['attachments'] ?? [];
 
-        $message = Message::create($data);
+            $message = Message::create($data);
+            $message->load('sender');
 
-        $attachments = [];
-        if($files){
-            foreach ($files as $file) {
-                $$directory = 'attachments/'.Str::random(32);
-                Storage::makeDirectory($directory);
+            $attachments = [];
+            if($files){
+                foreach ($files as $file) {
+                    $directory = 'attachments/'.Str::random(32);
+                    Storage::makeDirectory($directory);
 
-                $model = [
-                    'message_id' => $message->id,
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $file->store($directory, 'public'),
-                    'mime' => $file->getClientMimeType(),
-                    'size' => $file->getSize(),
-                ];
+                    $model = [
+                        'message_id' => $message->id,
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $file->store($directory, 'public'),
+                        'mime' => $file->getClientMimeType(),
+                        'size' => $file->getSize(),
+                    ];
 
-                $attachment = MessageAttachment::create($model);
-                $attachments[] = $attachment;
+                    $attachment = MessageAttachment::create($model);
+                    $attachments[] = $attachment;
+                }
+                $message->attachments = $attachments;
             }
-            $message->attachments = $attachments;
-        }
-        if($receiverId){ Conversation::updateConversationWithMessage($receiverId, auth()->id(), $message);}
-        if($groupId){ Group::updateGroupWithMessage($groupId, $message);}
+            if($receiverId){ Conversation::updateConversationWithMessage($receiverId, auth()->id(), $message);}
+            if($groupId){ Group::updateGroupWithMessage($groupId, $message);}
 
-        SocketMessage::dispatch($message);
-        return new MessageResource($message);
+            $message->load('attachments');
+            
+            try {
+                broadcast(new SocketMessage($message));
+            } catch (\Exception $broadcastError) {
+                \Log::error('Broadcast error: ' . $broadcastError->getMessage());
+                // Continue without broadcast - message still saved
+            }
+            
+            return new MessageResource($message);
+        } catch (\Exception $e) {
+            \Log::error('Message store error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Re-throw to see the actual error
+        }
     }
 
     public function destroy(Message $message)

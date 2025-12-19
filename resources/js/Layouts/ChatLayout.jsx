@@ -2,7 +2,6 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import TextInput from '@/Components/TextInput';
 import ConversationItem from '@/Components/App/ConversationItem';
-import { useEventBus } from '@/EventBus';
 
 const ChatLayout = ({ children }) => {
     const page = usePage();
@@ -13,7 +12,6 @@ const ChatLayout = ({ children }) => {
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState({});
-    const { emit } = useEventBus();
 
     const isUserOnline = (userId) => !!onlineUsers[userId];
 
@@ -28,58 +26,6 @@ const ChatLayout = ({ children }) => {
 
     useEffect(() => {
         setLocalConversations(conversations);
-    }, [conversations]);
-
-    useEffect(() => {
-        setLocalConversations(conversations);
-
-        conversations.forEach((conversation) => {
-            let channel = `message.group.${conversation.id}`;
-            if (conversation.is_user) {
-                channel = `message.user.${[
-                    parseInt(page.props.auth.user.id),
-                    parseInt(conversation.id),
-                ]
-                    .sort((a, b) => a - b)
-                    .join('-')}`;
-            }
-
-            Echo.private(channel)
-                .error((error) => {
-                    console.error(error);
-                })
-                .listen('SocketMessage', (e) => {
-                    console.log('SocketMessage', e);
-                    const message = e.message;
-                    emit('message.created', message);
-                    if (message.sender_id === page.props.auth.user.id) {
-                        return;
-                    }
-                    emit('newMessageNotification', {
-                        user: message.sender,
-                        route_name: route('chat.user', message.sender_id),
-                        message: `Sent you a message: ${message.message.substring(
-                            0,
-                            20
-                        )}`,
-                    });
-                });
-        });
-
-        return () => {
-            conversations.forEach((conversation) => {
-                let channel = `message.group.${conversation.id}`;
-                if (conversation.is_user) {
-                    channel = `message.user.${[
-                        parseInt(page.props.auth.user.id),
-                        parseInt(conversation.id),
-                    ]
-                        .sort((a, b) => a - b)
-                        .join('-')}`;
-                }
-                Echo.leave(channel);
-            });
-        };
     }, [conversations]);
 
     useEffect(() => {

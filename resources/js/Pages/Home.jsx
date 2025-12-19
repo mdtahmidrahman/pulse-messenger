@@ -23,20 +23,38 @@ function Home({ selectedConversation = null, messages = null }) {
 
     useEffect(() => {
         const offCreated = on('message.created', (message) => {
+            console.log('Home received message:', message);
+            console.log('Selected Conversation:', selectedConversation);
+
             if (
                 selectedConversation &&
                 parseInt(message.group_id) === parseInt(selectedConversation.id)
             ) {
-                setLocalMessages((prev) => [...prev, message]);
+                console.log('Group match!');
+                setLocalMessages((prev) => {
+                    if (prev.find((m) => m.id === message.id)) {
+                        return prev;
+                    }
+                    return [...prev, message];
+                });
             } else if (
                 selectedConversation &&
-                parseInt(message.group_id) === 0 &&
+                !message.group_id &&
                 (parseInt(message.sender_id) ===
                     parseInt(selectedConversation.id) ||
                     parseInt(message.receiver_id) ===
                     parseInt(selectedConversation.id))
             ) {
-                setLocalMessages((prev) => [...prev, message]);
+                console.log('User match!');
+                setLocalMessages((prev) => {
+                    if (prev.find((m) => m.id === message.id)) {
+                        return prev;
+                    }
+                    return [...prev, message];
+                });
+            } else {
+                console.log('No match found.');
+                return prev;
             }
         });
 

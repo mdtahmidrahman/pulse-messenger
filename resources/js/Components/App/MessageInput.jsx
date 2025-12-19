@@ -7,11 +7,13 @@ import {
 } from '@heroicons/react/24/solid';
 import NewMessageInput from './NewMessageInput';
 import axios from 'axios';
+import { useEventBus } from '@/EventBus';
 
 const MessageInput = ({ conversation = null }) => {
     const [newMessage, setNewMessage] = useState('');
     const [inputErrorMessage, setInputErrorMessage] = useState('');
     const [messageSending, setMessageSending] = useState(false);
+    const { emit } = useEventBus();
 
     const onSendClick = () => {
         if (messageSending) {
@@ -45,6 +47,7 @@ const MessageInput = ({ conversation = null }) => {
             .then((response) => {
                 setNewMessage('');
                 setMessageSending(false);
+                emit('message.created', response.data);
             })
             .catch((error) => {
                 setMessageSending(false);

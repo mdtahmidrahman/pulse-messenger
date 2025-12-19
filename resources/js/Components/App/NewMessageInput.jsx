@@ -38,7 +38,7 @@ const NewMessageInput = ({ value, onChange, onSend }) => {
             placeholder="Type a message"
             onKeyDown={onInputKeyDown}
             onChange={onChangeEvent}
-            className="input input-bordered w-full rounded-r-none resize-none overflow-y-auto max-h-40"
+            className="textarea textarea-bordered w-full rounded-r-none resize-none overflow-y-auto max-h-40 bg-slate-800 text-gray-200 border-slate-600 focus:border-slate-500"
         ></textarea>
     );
 };
