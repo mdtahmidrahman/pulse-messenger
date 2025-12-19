@@ -9,17 +9,27 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\ShouldBroadcastNow;
+use App\Models\Message;
+use App\Http\Resources\MessageResource;
 
-class SocketMessage
+class SocketMessage implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct()
+    public function __construct(public Message $message)
     {
         //
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'message' => new MessageResource($this->message),
+        ];
     }
 
     /**
@@ -29,8 +39,16 @@ class SocketMessage
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('channel-name'),
-        ];
+        $m = $this->message;
+        $channels = [];
+        if($m->group_id){
+            $channels[] = new PrivateChannel('message.group.' . $m->group_id);
+        }
+        else{
+            $channels[] = new PrivateChannel('message.user.' .collect([$m->receiver_id, $m->sender_id])
+            ->sort()
+            ->implode('-'));
+        }
+        return $channels;
     }
 }
