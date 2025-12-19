@@ -1,12 +1,12 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import 
-    import TextInput from '@/Components/TextInput';
+import TextInput from '@/Components/TextInput';
+import ConversationItem from '@/Components/App/ConversationItem';
 
 const ChatLayout = ({ children }) => {
     const page = usePage();
     const conversations = page.props.conversations;
-    const selectedConversations = page.props.selectedConversations;
+    const selectedConversations = page.props.selectedConversations || [];
     console.log('conversations', conversations);
     console.log('selectedConversation', selectedConversations);
     const [localConversations, setLocalConversations] = useState([]);
@@ -14,6 +14,15 @@ const ChatLayout = ({ children }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
 
     const isUserOnline = (userId) => onlineUsers[userId];
+
+    const onSearch = (ev) => {
+        const search = ev.target.value.toLowerCase();
+        setLocalConversations(
+            conversations.filter((conversation) => {
+                return conversation.name.toLowerCase().includes(search);
+            })
+        );
+    };
 
     useEffect(() => {
         setLocalConversations(conversations);
@@ -76,7 +85,7 @@ const ChatLayout = ({ children }) => {
         <>
             <div className="flex w-full flex-1 overflow-hidden">
                 <div
-                    className={`flex w-full flex-col overflow-hidden bg-slate-800 transition-all sm:w-[220px] md:w-[300px] ${selectedConversation ? '-ml-[100%] sm:ml-0' : ''}`}
+                    className={`flex w-full flex-col overflow-hidden bg-slate-800 transition-all sm:w-[220px] md:w-[300px] ${selectedConversations ? '-ml-[100%] sm:ml-0' : ''}`}
                 >
 
                     <div className='flex items-center justify-between py-2 px-3 text-xl'
@@ -90,7 +99,7 @@ const ChatLayout = ({ children }) => {
 
                         <button className='text-gray-400 hover:text-gray-200'>
                             <svg className="w-4 h-4 inline-block ml-2"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
                                 <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
                             </svg>
@@ -108,9 +117,14 @@ const ChatLayout = ({ children }) => {
 
                     <div className='flex-1 overflow-auto'>
                         {
-                            sortedConversations && sortedConversations.map(conversations =>{
-                                <ConversationItem></ConversationItem>
-                            })
+                            sortedConversations && sortedConversations.map((conversation) => (
+                                <ConversationItem
+                                    key={`${conversation.is_group ? 'group_' : 'user_'}${conversation.id}`}
+                                    conversation={conversation}
+                                    online={isUserOnline(conversation.id)}
+                                    selectedConversation={selectedConversations}
+                                />
+                            ))
                         }
                     </div>
 
