@@ -5,13 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreMessageRequest;
 
 class MessageController extends Controller
 {
     public function byuser(User $user)
     {
- 
+        $messages = Message::where('sender_id', auth()->id())
+            ->where('receiver_id', $user->id)
+            ->orWhere('sender_id', $user->id)
+            ->where('receiver_id', auth()->id())
+            ->latest()
+            ->paginate(10)
+        ;
+
+        return inertia('Home', [
+            'selectedConversation' => $user->toConversationArray(),
+            'messages' => MessageResource::collection($messages),
+        ]);
     }
 
     public function byGroup(Group $group)
@@ -24,14 +35,14 @@ class MessageController extends Controller
         
     }
 
-    public function store(StoreMessagerequest $request)
+    public function store(StoreMessageRequest $request)
     {
 
     }
 
     public function destroy(Message $message)
     {
-        
+
     }
 
 }
