@@ -2,10 +2,22 @@ import ChatLayout from '@/Layouts/ChatLayout.jsx';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
+import ConversationHeader from '@/Components/App/ConversationHeader';
+import MessageItem from '@/Components/App/MessageItem';
+import MessageInput from '@/Components/App/MessageInput';
 
 function Home({ selectedConversation = null, messages = null }) {
     const [localMessages, setLocalMessages] = useState([]);
     const messagesContainerRef = useRef(null);
+
+    useEffect(() => {
+        setTimeout(() => {
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.scrollTop =
+                    messagesContainerRef.current.scrollHeight;
+            }
+        }, 10);
+    }, [selectedConversation, localMessages]);
 
     useEffect(() => {
         setLocalMessages(messages ? messages.data.reverse() : []);
@@ -23,14 +35,14 @@ function Home({ selectedConversation = null, messages = null }) {
             )}
             {messages && (
                 <div className="flex flex-col h-full">
-                    {/* Header Placeholder */}
-                    <div className="p-4 border-b border-gray-700">Header</div>
+                    <ConversationHeader
+                        selectedConversation={selectedConversation}
+                    />
 
                     <div
                         ref={messagesContainerRef}
                         className="flex-1 overflow-y-auto p-5"
                     >
-                        {/* Messages Placeholder */}
                         {localMessages.length === 0 && (
                             <div className="flex justify-center items-center h-full">
                                 <div className="text-lg text-slate-200">
@@ -41,14 +53,12 @@ function Home({ selectedConversation = null, messages = null }) {
                         {localMessages.length > 0 && (
                             <div className="flex flex-col gap-2">
                                 {localMessages.map((msg) => (
-                                    <div key={msg.id} className="text-white">{msg.message}</div>
+                                    <MessageItem key={msg.id} message={msg} />
                                 ))}
                             </div>
                         )}
                     </div>
-
-                    {/* Input Placeholder */}
-                    <div className="p-4 border-t border-gray-700">Input</div>
+                    <MessageInput conversation={selectedConversation} />
                 </div>
             )}
         </>
