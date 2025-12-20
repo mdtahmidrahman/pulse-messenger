@@ -9,32 +9,125 @@ import { useEventBus } from '@/EventBus';
 
 function Home({ selectedConversation = null, messages = null }) {
     const [localMessages, setLocalMessages] = useState([]);
+    const [noMoreMessages, setNoMoreMessages] = useState(false);
+    const [fetchingOlderMessages, setFetchingOlderMessages] = useState(false);
     const messagesContainerRef = useRef(null);
+    const loadMoreIntersect = useRef(null);
     const { on } = useEventBus();
 
+    const loadOlderMessages = async () => {
+        if (noMoreMessages || fetchingOlderMessages || localMessages.length === 0) return;
+
+        const oldestMessage = localMessages[0]; // First message is the oldest (after reverse)
+        if (!oldestMessage) return;
+
+        console.log('Fetching older messages before:', oldestMessage.id);
+        setFetchingOlderMessages(true);
+
+        const scrollHeightBefore = messagesContainerRef.current.scrollHeight;
+        const scrollTopBefore = messagesContainerRef.current.scrollTop;
+
+        try {
+            const response = await axios.get(route('message.loadOlder', oldestMessage.id));
+            console.log('LoadOlder response:', response.data);
+
+            // Laravel Resource Collection returns: { data: [...], links: {...}, meta: {...} }
+            const messagesData = response.data.data || response.data;
+            const newMessages = Array.isArray(messagesData) ? [...messagesData].reverse() : [];
+
+            if (newMessages.length === 0) {
+                console.log('No more messages to load');
+                setNoMoreMessages(true);
+                setFetchingOlderMessages(false);
+                return;
+            }
+
+            setLocalMessages((prev) => {
+                const existingIds = new Set(prev.map(m => m.id));
+                const uniqueNewMessages = newMessages.filter(m => !existingIds.has(m.id));
+                return [...uniqueNewMessages, ...prev];
+            });
+
+            // Check if there are more pages
+            if (response.data.links && !response.data.links.next) {
+                // No more pages - but we still prepended some messages
+            }
+            if (response.data.meta && response.data.meta.current_page >= response.data.meta.last_page) {
+                setNoMoreMessages(true);
+            }
+
+            // Scroll Correction
+            // Use setTimeout to allow DOM to update, then adjust scroll
+            setTimeout(() => {
+                if (messagesContainerRef.current) {
+                    const scrollHeightAfter = messagesContainerRef.current.scrollHeight;
+                    messagesContainerRef.current.scrollTop =
+                        scrollHeightAfter - scrollHeightBefore + scrollTopBefore;
+                }
+            }, 0);
+
+        } catch (error) {
+            console.error("Error loading older messages:", error);
+        } finally {
+            setFetchingOlderMessages(false);
+        }
+    };
+
     useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                console.log('Intersection Triggered:', entry.isIntersecting);
+                if (entry.isIntersecting && !noMoreMessages && localMessages.length > 0) {
+                    loadOlderMessages();
+                }
+            },
+            {
+                root: messagesContainerRef.current,
+                threshold: 0.1, // Trigger when even a little visible
+                rootMargin: '100px 0px 0px 0px', // Preload a bit before reaching exact top
+            }
+        );
+
+        if (loadMoreIntersect.current) {
+            observer.observe(loadMoreIntersect.current);
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [noMoreMessages, localMessages]);
+
+    useEffect(() => {
+        // Initial Scroll to Bottom
         setTimeout(() => {
             if (messagesContainerRef.current) {
                 messagesContainerRef.current.scrollTop =
                     messagesContainerRef.current.scrollHeight;
             }
         }, 10);
-    }, [selectedConversation, localMessages]);
+    }, [selectedConversation]);
+    // Removed localMessages for auto-scroll to bottom, only on conversation change now. 
+    // New messages from pusher are handled separately probably or need a check
 
     useEffect(() => {
         const offCreated = on('message.created', (message) => {
-            console.log('Home received message:', message);
-            console.log('Selected Conversation:', selectedConversation);
-
+            // ... (Logic stays similar, but ensuring we don't break scroll)
             if (
                 selectedConversation &&
                 parseInt(message.group_id) === parseInt(selectedConversation.id)
             ) {
-                console.log('Group match!');
                 setLocalMessages((prev) => {
-                    if (prev.find((m) => m.id === message.id)) {
-                        return prev;
-                    }
+                    const exists = prev.find((m) => m.id === message.id);
+                    if (exists) return prev;
+
+                    // Auto-scroll if near bottom
+                    setTimeout(() => {
+                        if (messagesContainerRef.current) {
+                            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+                        }
+                    }, 50);
+
                     return [...prev, message];
                 });
             } else if (
@@ -45,16 +138,19 @@ function Home({ selectedConversation = null, messages = null }) {
                     parseInt(message.receiver_id) ===
                     parseInt(selectedConversation.id))
             ) {
-                console.log('User match!');
                 setLocalMessages((prev) => {
-                    if (prev.find((m) => m.id === message.id)) {
-                        return prev;
-                    }
+                    const exists = prev.find((m) => m.id === message.id);
+                    if (exists) return prev;
+
+                    // Auto-scroll if near bottom
+                    setTimeout(() => {
+                        if (messagesContainerRef.current) {
+                            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+                        }
+                    }, 50);
+
                     return [...prev, message];
                 });
-            } else {
-                console.log('No match found.');
-                return prev;
             }
         });
 
@@ -64,7 +160,13 @@ function Home({ selectedConversation = null, messages = null }) {
     }, [selectedConversation]);
 
     useEffect(() => {
-        setLocalMessages(messages ? messages.data.reverse() : []);
+        if (messages) {
+            setLocalMessages(messages.data.reverse());
+            setNoMoreMessages(false); // Reset when conversation changes
+        } else {
+            setLocalMessages([]);
+            setNoMoreMessages(true);
+        }
     }, [messages]);
 
     return (
@@ -87,6 +189,15 @@ function Home({ selectedConversation = null, messages = null }) {
                         ref={messagesContainerRef}
                         className="flex-1 overflow-y-auto p-5"
                     >
+                        {/* Loading Spinner / Intersection Target */}
+                        <div ref={loadMoreIntersect} className="h-2"></div>
+
+                        {fetchingOlderMessages && (
+                            <div className="text-center py-2">
+                                <span className="loading loading-spinner loading-md text-slate-400"></span>
+                            </div>
+                        )}
+
                         {localMessages.length === 0 && (
                             <div className="flex justify-center items-center h-full">
                                 <div className="text-lg text-slate-200">

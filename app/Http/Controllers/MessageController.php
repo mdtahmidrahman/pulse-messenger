@@ -36,7 +36,7 @@ class MessageController extends Controller
     {
         $messages = Message::where('group_id', $group->id)
             ->latest()
-            ->paginate(50);
+            ->paginate(10);
             
         $messages->load('sender');
 
@@ -67,6 +67,9 @@ class MessageController extends Controller
                 ->latest()
                 ->paginate(10);
         }
+        
+        $messages->load('sender');
+        
         return MessageResource::collection($messages);
     }
 
