@@ -297,7 +297,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main className="flex-1 overflow-hidden">{children}</main>
+            <main className="flex-1 overflow-auto">{children}</main>
 
             {/* User Modal for Admin */}
             <UserModal
