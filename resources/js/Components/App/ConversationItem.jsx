@@ -57,8 +57,16 @@ const ConversationItem = ({
                 }
             >
                 <div className="flex justify-between gap-1 items-center overflow-hidden">
-                    <h3 className="font-semibold flex items-center gap-2 flex-1 text-nowrap overflow-hidden text-ellipsis">
+                    <h3 className="font-semibold flex items-center gap-1 flex-1 text-nowrap overflow-hidden text-ellipsis">
                         {conversation.name}
+                        {/* Admin Badge */}
+                        {conversation.is_user && !!conversation.is_admin && (
+                            <span className="badge badge-xs badge-success text-[10px] px-1">Admin</span>
+                        )}
+                        {/* Blocked Indicator */}
+                        {conversation.is_user && conversation.blocked_at && (
+                            <span className="badge badge-xs badge-error text-[10px] px-1">Blocked</span>
+                        )}
                     </h3>
                     {conversation.last_message_date && (
                         <span className="text-nowrap text-xs text-gray-500">
