@@ -24,7 +24,7 @@ class MessageController extends Controller
             ->latest()
             ->paginate(10);
             
-        $messages->load('sender');
+        $messages->load(['sender', 'attachments']);
 
         return inertia('Home', [
             'selectedConversation' => $user->toConversationArray(),
@@ -38,7 +38,7 @@ class MessageController extends Controller
             ->latest()
             ->paginate(10);
             
-        $messages->load('sender');
+        $messages->load(['sender', 'attachments']);
 
         return inertia('Home', [
             'selectedConversation' => $group->toConversationArray(),
@@ -68,7 +68,7 @@ class MessageController extends Controller
                 ->paginate(10);
         }
         
-        $messages->load('sender');
+        $messages->load(['sender', 'attachments']);
         
         return MessageResource::collection($messages);
     }
@@ -132,6 +132,11 @@ class MessageController extends Controller
         }
         $message->delete();
         return response('', 204);
+    }
+
+    public function downloadAttachment(MessageAttachment $attachment)
+    {
+        return Storage::disk('public')->download($attachment->path, $attachment->name);
     }
 
 }

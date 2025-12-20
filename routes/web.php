@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function()
     Route::post('/message', [MessageController::class, 'store'])->name('message.store');
     Route::delete('/message/{message}', [MessageController::class, 'destroy'])->name('message.destroy');
     Route::get('/load-older/{message}', [MessageController::class, 'loadOlder'])->name('message.loadOlder');
+    Route::get('/message/attachment/{attachment}', [MessageController::class, 'downloadAttachment'])->name('message.downloadAttachment');
 });
 
 Route::middleware('auth')->group(function()

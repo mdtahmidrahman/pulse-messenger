@@ -27,6 +27,9 @@ class SocketMessage implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        // Ensure relations are loaded for broadcast
+        $this->message->load(['sender', 'attachments']);
+        
         return [
             'message' => new MessageResource($this->message),
         ];
