@@ -80,6 +80,41 @@ const ChatLayout = ({ children }) => {
         };
     }, [on]);
 
+    // Listen for message deletions and update sidebar
+    useEffect(() => {
+        const offMessageDeleted = on('message.deleted', (deletedMessage) => {
+            console.log('ChatLayout received message deleted:', deletedMessage);
+            setLocalConversations((prevConversations) => {
+                return prevConversations.map((conversation) => {
+                    let isMatch = false;
+
+                    if (deletedMessage.group_id) {
+                        isMatch = conversation.is_group && parseInt(conversation.id) === parseInt(deletedMessage.group_id);
+                    } else {
+                        isMatch = !conversation.is_group && (
+                            parseInt(conversation.id) === parseInt(deletedMessage.sender_id) ||
+                            parseInt(conversation.id) === parseInt(deletedMessage.receiver_id)
+                        );
+                    }
+
+                    if (isMatch) {
+                        return {
+                            ...conversation,
+                            last_message: 'Message deleted',
+                            last_message_sender: null,
+                            last_message_sender_id: null,
+                        };
+                    }
+                    return conversation;
+                });
+            });
+        });
+
+        return () => {
+            offMessageDeleted();
+        };
+    }, [on]);
+
     useEffect(() => {
         setLocalConversations(conversations);
     }, [conversations]);

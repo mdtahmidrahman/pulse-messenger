@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import React from 'react';
 import UserAvatar from '@/Components/App/UserAvatar';
+import MessageOptionsDropdown from '@/Components/App/MessageOptionsDropdown';
 import { formatMessageDateLong } from '@/helpers';
 import {
     PaperClipIcon,
@@ -10,7 +11,7 @@ import {
     DocumentIcon,
 } from '@heroicons/react/24/solid';
 
-const MessageItem = ({ message, openImageViewer }) => {
+const MessageItem = ({ message, openImageViewer, onDelete }) => {
     const currentUser = usePage().props.auth.user;
 
     const formatFileSize = (bytes) => {
@@ -129,7 +130,7 @@ const MessageItem = ({ message, openImageViewer }) => {
     return (
         <div
             className={
-                'chat ' +
+                'chat group ' +
                 (message.sender_id === currentUser.id
                     ? 'chat-end'
                     : 'chat-start')
@@ -146,45 +147,51 @@ const MessageItem = ({ message, openImageViewer }) => {
                     {formatMessageDateLong(message.created_at)}
                 </time>
             </div>
-            <div
-                className={
-                    'chat-bubble relative max-w-sm ' +
-                    (message.sender_id === currentUser.id
-                        ? 'chat-bubble-info'
-                        : '')
-                }
-            >
-                {/* Image Grid */}
-                {renderImageGrid()}
-
-                {/* Other Attachments (video, audio, files) */}
-                {otherAttachments.map((attachment, index) =>
-                    renderOtherAttachment(attachment, index)
+            <div className="flex items-center gap-1">
+                {/* Delete dropdown for own messages - appears on left side of bubble */}
+                {message.sender_id === currentUser.id && (
+                    <MessageOptionsDropdown message={message} onDelete={onDelete} />
                 )}
+                <div
+                    className={
+                        'chat-bubble relative max-w-sm ' +
+                        (message.sender_id === currentUser.id
+                            ? 'chat-bubble-info'
+                            : '')
+                    }
+                >
+                    {/* Image Grid */}
+                    {renderImageGrid()}
 
-                {/* Message Text */}
-                {message.message && (
-                    <div className="chat-message">
-                        <div className="chat-message-content markdown-message">
-                            <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                    a(props) {
-                                        return (
-                                            <a
-                                                {...props}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            />
-                                        )
-                                    }
-                                }}
-                            >
-                                {message.message}
-                            </ReactMarkdown>
+                    {/* Other Attachments (video, audio, files) */}
+                    {otherAttachments.map((attachment, index) =>
+                        renderOtherAttachment(attachment, index)
+                    )}
+
+                    {/* Message Text */}
+                    {message.message && (
+                        <div className="chat-message">
+                            <div className="chat-message-content markdown-message">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        a(props) {
+                                            return (
+                                                <a
+                                                    {...props}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                />
+                                            )
+                                        }
+                                    }}
+                                >
+                                    {message.message}
+                                </ReactMarkdown>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

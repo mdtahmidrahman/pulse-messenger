@@ -167,6 +167,23 @@ function Home({ selectedConversation = null, messages = null }) {
         };
     }, [selectedConversation]);
 
+    // Handle local message deletion (optimistic update)
+    const handleMessageDelete = (messageId) => {
+        setLocalMessages((prev) => prev.filter((m) => m.id !== messageId));
+    };
+
+    // Listen for message deletion from other users (real-time sync)
+    useEffect(() => {
+        const offDeleted = on('message.deleted', (deletedMessage) => {
+            console.log('Message deleted by another user:', deletedMessage);
+            setLocalMessages((prev) => prev.filter((m) => m.id !== deletedMessage.id));
+        });
+
+        return () => {
+            offDeleted();
+        };
+    }, [on]);
+
     useEffect(() => {
         if (messages) {
             setLocalMessages(messages.data.reverse());
@@ -220,6 +237,7 @@ function Home({ selectedConversation = null, messages = null }) {
                                         key={msg.id}
                                         message={msg}
                                         openImageViewer={openImageViewer}
+                                        onDelete={handleMessageDelete}
                                     />
                                 ))}
                             </div>

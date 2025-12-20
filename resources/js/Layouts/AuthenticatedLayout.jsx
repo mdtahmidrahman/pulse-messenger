@@ -88,6 +88,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                 : message.attachments.length + ' attachments'
                             }`,
                     });
+                })
+                .listen('SocketMessageDeleted', (e) => {
+                    console.log('SocketMessageDeleted', e);
+                    emit('message.deleted', e.message);
                 });
         });
 
