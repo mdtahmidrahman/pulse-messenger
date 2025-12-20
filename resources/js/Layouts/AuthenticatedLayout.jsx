@@ -140,12 +140,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-base-100 px-3 py-2 text-sm font-medium leading-4 text-base-content transition duration-150 ease-in-out hover:text-base-content/80 focus:outline-none"
+                                                className="inline-flex items-center gap-2 rounded-md border border-transparent bg-base-100 px-3 py-2 text-sm font-medium leading-4 text-base-content transition duration-150 ease-in-out hover:text-base-content/80 focus:outline-none"
                                             >
+                                                {/* Avatar */}
+                                                {user.avatar_url ? (
+                                                    <img
+                                                        src={user.avatar_url}
+                                                        alt={user.name}
+                                                        className="w-6 h-6 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span className="w-6 h-6 rounded-full bg-gray-400 text-gray-800 flex items-center justify-center text-xs font-medium">
+                                                        {user.name.substring(0, 1).toUpperCase()}
+                                                    </span>
+                                                )}
                                                 {user.name}
 
                                                 <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
+                                                    className="-me-0.5 h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20"
                                                     fill="currentColor"

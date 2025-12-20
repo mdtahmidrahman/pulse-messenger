@@ -4,6 +4,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { useRef, useState } from 'react';
+import { CameraIcon } from '@heroicons/react/24/solid';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -11,17 +13,42 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
+    const fileInput = useRef(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
+    const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
             name: user.name,
             email: user.email,
+            avatar: null,
+            _method: 'PATCH',
         });
+
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('avatar', file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const triggerFileInput = () => {
+        fileInput.current.click();
+    };
 
     const submit = (e) => {
         e.preventDefault();
+        post(route('profile.update'), {
+            forceFormData: true,
+        });
+    };
 
-        patch(route('profile.update'));
+    // Determine avatar source
+    const getAvatarSrc = () => {
+        if (previewUrl) return previewUrl;
+        if (user.avatar) return `/storage/${user.avatar}`;
+        // Generate initials avatar
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&size=128`;
     };
 
     return (
@@ -37,6 +64,45 @@ export default function UpdateProfileInformation({
             </header>
 
             <form onSubmit={submit} className="mt-6 space-y-6">
+                {/* Avatar Section */}
+                <div className="flex items-center gap-6">
+                    <div className="relative">
+                        <img
+                            src={getAvatarSrc()}
+                            alt="Profile Avatar"
+                            className="w-20 h-20 rounded-full object-cover border-2 border-base-300"
+                        />
+                        <button
+                            type="button"
+                            onClick={triggerFileInput}
+                            className="absolute bottom-0 right-0 bg-primary text-primary-content rounded-full p-1.5 shadow-lg hover:bg-primary-focus transition-colors"
+                        >
+                            <CameraIcon className="w-4 h-4" />
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInput}
+                            className="hidden"
+                            accept="image/jpeg,image/png,image/jpg,image/gif"
+                            onChange={handleAvatarChange}
+                        />
+                    </div>
+                    <div>
+                        <button
+                            type="button"
+                            onClick={triggerFileInput}
+                            className="btn btn-sm btn-outline"
+                        >
+                            Change Avatar
+                        </button>
+                        <p className="text-xs text-base-content/60 mt-1">
+                            JPG, PNG or GIF. Max 2MB.
+                        </p>
+                    </div>
+                </div>
+
+                <InputError className="mt-2" message={errors.avatar} />
+
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
 
