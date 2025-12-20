@@ -5,6 +5,7 @@ import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
 import ConversationHeader from '@/Components/App/ConversationHeader';
 import MessageItem from '@/Components/App/MessageItem';
 import MessageInput from '@/Components/App/MessageInput';
+import ImageViewer from '@/Components/App/ImageViewer';
 import { useEventBus } from '@/EventBus';
 
 function Home({ selectedConversation = null, messages = null }) {
@@ -14,6 +15,23 @@ function Home({ selectedConversation = null, messages = null }) {
     const messagesContainerRef = useRef(null);
     const loadMoreIntersect = useRef(null);
     const { on } = useEventBus();
+
+    // Image viewer state
+    const [viewerImages, setViewerImages] = useState([]);
+    const [viewerIndex, setViewerIndex] = useState(0);
+    const [showViewer, setShowViewer] = useState(false);
+
+    const openImageViewer = (images, index) => {
+        setViewerImages(images);
+        setViewerIndex(index);
+        setShowViewer(true);
+    };
+
+    const closeImageViewer = () => {
+        setShowViewer(false);
+        setViewerImages([]);
+        setViewerIndex(0);
+    };
 
     const loadOlderMessages = async () => {
         if (noMoreMessages || fetchingOlderMessages || localMessages.length === 0) return;
@@ -198,13 +216,26 @@ function Home({ selectedConversation = null, messages = null }) {
                         {localMessages.length > 0 && (
                             <div className="flex flex-col gap-2">
                                 {localMessages.map((msg) => (
-                                    <MessageItem key={msg.id} message={msg} />
+                                    <MessageItem
+                                        key={msg.id}
+                                        message={msg}
+                                        openImageViewer={openImageViewer}
+                                    />
                                 ))}
                             </div>
                         )}
                     </div>
                     <MessageInput conversation={selectedConversation} />
                 </div>
+            )}
+
+            {/* Image Viewer Modal */}
+            {showViewer && viewerImages.length > 0 && (
+                <ImageViewer
+                    images={viewerImages}
+                    initialIndex={viewerIndex}
+                    onClose={closeImageViewer}
+                />
             )}
         </>
     );

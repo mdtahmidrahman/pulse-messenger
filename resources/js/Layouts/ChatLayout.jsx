@@ -46,9 +46,23 @@ const ChatLayout = ({ children }) => {
 
                     if (isMatch) {
                         console.log('Updating conversation:', conversation.name, 'with new message');
+
+                        // Determine last message text
+                        let lastMessageText = message.message;
+                        if (!lastMessageText && message.attachments?.length > 0) {
+                            const hasImage = message.attachments.some(a => a.mime?.startsWith('image/'));
+                            const hasVideo = message.attachments.some(a => a.mime?.startsWith('video/'));
+                            if (hasImage) lastMessageText = 'Photo';
+                            else if (hasVideo) lastMessageText = 'Video';
+                            else lastMessageText = 'Attachment';
+                            if (message.attachments.length > 1) {
+                                lastMessageText += ` (${message.attachments.length})`;
+                            }
+                        }
+
                         return {
                             ...conversation,
-                            last_message: message.message,
+                            last_message: lastMessageText,
                             last_message_date: message.created_at,
                         };
                     }

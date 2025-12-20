@@ -72,7 +72,37 @@ class User extends Authenticatable
             ->orderBy('messages.created_at', 'desc')
             ->orderBy('users.name')
         ;
-        return $query->get();
+        
+        $users = $query->get();
+        
+        // Check if last message has attachments
+        foreach ($users as $userItem) {
+            if (!$userItem->last_message) {
+                $lastMessageId = \DB::table('conversations')
+                    ->where(function($q) use ($userId, $userItem) {
+                        $q->where('user_id1', $userId)->where('user_id2', $userItem->id);
+                    })
+                    ->orWhere(function($q) use ($userId, $userItem) {
+                        $q->where('user_id1', $userItem->id)->where('user_id2', $userId);
+                    })
+                    ->value('last_message_id');
+                    
+                if ($lastMessageId) {
+                    $attachment = MessageAttachment::where('message_id', $lastMessageId)->first();
+                    if ($attachment) {
+                        if (str_starts_with($attachment->mime, 'image/')) {
+                            $userItem->last_message = 'Photo';
+                        } elseif (str_starts_with($attachment->mime, 'video/')) {
+                            $userItem->last_message = 'Video';
+                        } else {
+                            $userItem->last_message = 'Attachment';
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $users;
     }
 
     public function toConversationArray()

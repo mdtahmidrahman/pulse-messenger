@@ -34,7 +34,25 @@ class Group extends Model
             ->orderBy('messages.created_at', 'desc' )
             ->orderBy('groups.name');
 
-        return $query->get();
+        $groups = $query->get();
+        
+        // Check if last message has attachments
+        foreach ($groups as $group) {
+            if (!$group->last_message && $group->last_message_id) {
+                $attachment = MessageAttachment::where('message_id', $group->last_message_id)->first();
+                if ($attachment) {
+                    if (str_starts_with($attachment->mime, 'image/')) {
+                        $group->last_message = 'Photo';
+                    } elseif (str_starts_with($attachment->mime, 'video/')) {
+                        $group->last_message = 'Video';
+                    } else {
+                        $group->last_message = 'Attachment';
+                    }
+                }
+            }
+        }
+        
+        return $groups;
     }
 
     public function toConversationArray()
