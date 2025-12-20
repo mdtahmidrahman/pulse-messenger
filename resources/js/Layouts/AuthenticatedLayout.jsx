@@ -2,10 +2,12 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import UserModal from '@/Components/App/UserModal';
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { useEventBus } from '@/EventBus';
 import { useToast } from '@/ToastContext';
+import { UserPlusIcon } from '@heroicons/react/24/solid';
 
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
@@ -17,6 +19,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    const [showUserModal, setShowUserModal] = useState(false);
 
     // Listen for new message notifications and show toast
     useEffect(() => {
@@ -133,7 +136,19 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center gap-3">
+                            {/* Add User Button - Admin Only */}
+                            {!!user.is_admin && (
+                                <button
+                                    onClick={() => setShowUserModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                                    title="Add New User"
+                                >
+                                    <UserPlusIcon className="w-4 h-4" />
+                                    <span>Add User</span>
+                                </button>
+                            )}
+
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -283,6 +298,12 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main className="flex-1 overflow-hidden">{children}</main>
+
+            {/* User Modal for Admin */}
+            <UserModal
+                show={showUserModal}
+                onClose={() => setShowUserModal(false)}
+            />
         </div>
     );
 }
