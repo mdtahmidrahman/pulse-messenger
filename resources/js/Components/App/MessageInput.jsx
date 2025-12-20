@@ -9,11 +9,13 @@ import {
 import NewMessageInput from './NewMessageInput';
 import axios from 'axios';
 import { useEventBus } from '@/EventBus';
+import EmojiPicker from 'emoji-picker-react';
 
 const MessageInput = ({ conversation = null }) => {
     const [newMessage, setNewMessage] = useState('');
     const [inputErrorMessage, setInputErrorMessage] = useState('');
     const [messageSending, setMessageSending] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const { emit } = useEventBus();
 
     const onSendClick = () => {
@@ -69,7 +71,12 @@ const MessageInput = ({ conversation = null }) => {
             setMessageSending(false);
             emit('message.created', response.data);
         });
-    }
+    };
+
+    const onEmojiClick = (emojiObject) => {
+        setNewMessage(newMessage + emojiObject.emoji);
+        setShowEmojiPicker(false);
+    };
 
     return (
         <div className="flex items-center gap-4 border-t border-slate-700 py-3 px-3">
@@ -123,10 +130,37 @@ const MessageInput = ({ conversation = null }) => {
             </button>
 
             {/* Right: Additional Icons */}
-            <div className="flex gap-1">
-                <button className="p-2 text-gray-400 hover:text-gray-300">
+            <div className="flex gap-1 relative">
+                {/* Emoji Button */}
+                <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-2 text-gray-400 hover:text-gray-300"
+                >
                     <FaceSmileIcon className="w-5 h-5" />
                 </button>
+
+                {/* Emoji Picker */}
+                {showEmojiPicker && (
+                    <>
+                        {/* Backdrop - closes picker when clicking outside */}
+                        <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setShowEmojiPicker(false)}
+                        />
+                        {/* Picker */}
+                        <div className="absolute bottom-full right-0 z-20 mb-2">
+                            <EmojiPicker
+                                onEmojiClick={onEmojiClick}
+                                theme="dark"
+                                width={320}
+                                height={400}
+                                searchPlaceholder="Search emoji..."
+                                previewConfig={{ showPreview: false }}
+                            />
+                        </div>
+                    </>
+                )}
+
                 <button onClick={onLikeClick} className="p-2 text-gray-400 hover:text-gray-300">
                     <HandThumbUpIcon className="w-5 h-5" />
                 </button>
