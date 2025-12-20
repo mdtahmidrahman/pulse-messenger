@@ -24,7 +24,7 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 ### Md. Tahmid Rahman, ID: 232-134-039, SWE 5th
 ### Sadman Islam, ID: 232-134-013, SWE 5th
 
-#### [Overview Video Link](https://drive.google.com/drive/folders/1AZPmqQpmUn2xIDFfXGtxeLg0SpMGE4xn?usp=sharing)
+#### [Overview Video Link](https://drive.google.com/file/d/1_a4FUp-Z2qFeuVv5l6NljxUTyidpVKpG/view?usp=sharing)
 
 ---
 
