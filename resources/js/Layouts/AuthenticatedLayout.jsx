@@ -5,15 +5,51 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { useEventBus } from '@/EventBus';
+import { useToast } from '@/ToastContext';
 
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
     const conversations = page.props.conversations;
-    const { emit } = useEventBus();
+    const selectedConversation = page.props.selectedConversation;
+    const { emit, on } = useEventBus();
+    const { showToast } = useToast();
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+
+    // Listen for new message notifications and show toast
+    useEffect(() => {
+        const offNotification = on('newMessageNotification', (data) => {
+            // Check if the message is from the currently selected conversation
+            let isCurrentConversation = false;
+
+            if (selectedConversation) {
+                if (data.group_id) {
+                    // Group message
+                    isCurrentConversation = selectedConversation.is_group &&
+                        parseInt(selectedConversation.id) === parseInt(data.group_id);
+                } else {
+                    // Direct message
+                    isCurrentConversation = !selectedConversation.is_group &&
+                        parseInt(selectedConversation.id) === parseInt(data.user.id);
+                }
+            }
+
+            // Show toast only if NOT from the current conversation
+            if (!isCurrentConversation) {
+                const senderName = data.user.name.split(' ')[0];
+                const messagePreview = data.message.length > 50
+                    ? data.message.substring(0, 50) + '...'
+                    : data.message;
+                showToast(`${senderName}: ${messagePreview}`, { isGroup: !!data.group_id });
+            }
+        });
+
+        return () => {
+            offNotification();
+        };
+    }, [on, selectedConversation, showToast]);
 
     useEffect(() => {
         conversations.forEach((conversation) => {
