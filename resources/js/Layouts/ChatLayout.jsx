@@ -63,6 +63,10 @@ const ChatLayout = ({ children }) => {
                         return {
                             ...conversation,
                             last_message: lastMessageText,
+                            last_message_sender: conversation.is_group && message.sender?.name
+                                ? message.sender.name.split(' ')[0]
+                                : null,
+                            last_message_sender_id: message.sender_id,
                             last_message_date: message.created_at,
                         };
                     }

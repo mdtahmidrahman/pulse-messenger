@@ -67,7 +67,14 @@ const ConversationItem = ({
                     )}
                 </div>
                 {conversation.last_message && (
-                    <p className="overflow-hidden text-nowrap text-ellipsis">
+                    <p className="overflow-hidden text-nowrap text-ellipsis text-sm text-gray-400">
+                        {conversation.is_group && (conversation.last_message_sender || conversation.last_message_sender_id) && (
+                            <span className="font-medium text-gray-300">
+                                {parseInt(conversation.last_message_sender_id) === currentUser.id
+                                    ? 'You'
+                                    : conversation.last_message_sender}:{' '}
+                            </span>
+                        )}
                         {conversation.last_message}
                     </p>
                 )}

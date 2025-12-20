@@ -27,10 +27,17 @@ class Group extends Model
 
     public static function getGroupsForUser(User $user)
     {
-        $query = self::select(['groups.*', 'messages.message as last_message', 'messages.created_at as last_message_date'])
-            ->join('group_users', 'group_users.group_id', '=', 'groups.id' )
+        $query = self::select([
+                'groups.*', 
+                'messages.message as last_message', 
+                'messages.created_at as last_message_date',
+                'messages.sender_id as last_message_sender_id',
+                'users.name as last_message_sender_name'
+            ])
+            ->join('group_user', 'group_user.group_id', '=', 'groups.id' )
             ->leftJoin('messages', 'messages.id', '=', 'groups.last_message_id' )
-            ->where('group_users.user_id', $user->id)
+            ->leftJoin('users', 'users.id', '=', 'messages.sender_id')
+            ->where('group_user.user_id', $user->id)
             ->orderBy('messages.created_at', 'desc' )
             ->orderBy('groups.name');
 
@@ -57,6 +64,12 @@ class Group extends Model
 
     public function toConversationArray()
     {
+        // Get first name from sender
+        $senderFirstName = null;
+        if ($this->last_message_sender_name) {
+            $senderFirstName = explode(' ', $this->last_message_sender_name)[0];
+        }
+        
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -68,6 +81,8 @@ class Group extends Model
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'last_message' => $this->last_message,
+            'last_message_sender' => $senderFirstName,
+            'last_message_sender_id' => $this->last_message_sender_id,
             'last_message_date' => $this->last_message_date,
         ];
     }
