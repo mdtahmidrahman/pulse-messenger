@@ -2,16 +2,16 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import TextInput from '@/Components/TextInput';
 import ConversationItem from '@/Components/App/ConversationItem';
+import { useEventBus } from '@/EventBus';
 
 const ChatLayout = ({ children }) => {
     const page = usePage();
     const conversations = page.props.conversations;
     const selectedConversations = page.props.selectedConversations || [];
-    console.log('conversations', conversations);
-    console.log('selectedConversation', selectedConversations);
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState({});
+    const { on } = useEventBus();
 
     const isUserOnline = (userId) => !!onlineUsers[userId];
 
@@ -24,29 +24,66 @@ const ChatLayout = ({ children }) => {
         );
     };
 
+    // Listen for new messages and update conversation list
+    useEffect(() => {
+        const offMessageCreated = on('message.created', (message) => {
+            console.log('ChatLayout received message:', message);
+            setLocalConversations((prevConversations) => {
+                return prevConversations.map((conversation) => {
+                    // Check if this message belongs to this conversation
+                    let isMatch = false;
+
+                    if (message.group_id) {
+                        // Group message
+                        isMatch = conversation.is_group && parseInt(conversation.id) === parseInt(message.group_id);
+                    } else {
+                        // Direct message - match if conversation is with sender OR receiver
+                        isMatch = !conversation.is_group && (
+                            parseInt(conversation.id) === parseInt(message.sender_id) ||
+                            parseInt(conversation.id) === parseInt(message.receiver_id)
+                        );
+                    }
+
+                    if (isMatch) {
+                        console.log('Updating conversation:', conversation.name, 'with new message');
+                        return {
+                            ...conversation,
+                            last_message: message.message,
+                            last_message_date: message.created_at,
+                        };
+                    }
+                    return conversation;
+                });
+            });
+        });
+
+        return () => {
+            offMessageCreated();
+        };
+    }, [on]);
+
     useEffect(() => {
         setLocalConversations(conversations);
     }, [conversations]);
 
     useEffect(() => {
-        setSortedConversations(
-            localConversations.sort((a, b) => {
-                if (a.blocked_at && b.blocked_at) {
-                    return a.blocked_at > b.blocked_at ? 1 : -1;
-                } else if (a.blocked_at) {
-                    return -1;
-                } else if (b.blocked_at) {
-                    return 1;
-                }
-                if (a.last_message_date && b.last_message_date)
-                    return b.last_message_date.localeCompare(
-                        a.last_message_date,
-                    );
-                else if (a.last_message_date) return -1;
-                else if (b.last_message_date) return 1;
-                else return 0;
-            }),
-        );
+        const sorted = [...localConversations].sort((a, b) => {
+            if (a.blocked_at && b.blocked_at) {
+                return a.blocked_at > b.blocked_at ? 1 : -1;
+            } else if (a.blocked_at) {
+                return -1;
+            } else if (b.blocked_at) {
+                return 1;
+            }
+            if (a.last_message_date && b.last_message_date)
+                return b.last_message_date.localeCompare(
+                    a.last_message_date,
+                );
+            else if (a.last_message_date) return -1;
+            else if (b.last_message_date) return 1;
+            else return 0;
+        });
+        setSortedConversations(sorted);
     }, [localConversations]);
 
     useEffect(() => {
