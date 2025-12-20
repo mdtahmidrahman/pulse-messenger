@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import React from 'react';
 import UserAvatar from '@/Components/App/UserAvatar';
 import { formatMessageDateLong } from '@/helpers';
@@ -36,8 +37,23 @@ const MessageItem = ({ message, attachmentClick }) => {
                 }
             >
                 <div className="chat-message">
-                    <div className="chat-message-content">
-                        <ReactMarkdown>{message.message}</ReactMarkdown>
+                    <div className="chat-message-content markdown-message">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                a(props) {
+                                    return (
+                                        <a
+                                            {...props}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    )
+                                }
+                            }}
+                        >
+                            {message.message}
+                        </ReactMarkdown>
                     </div>
                 </div>
             </div>

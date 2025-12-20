@@ -18,7 +18,7 @@ function Home({ selectedConversation = null, messages = null }) {
     const loadOlderMessages = async () => {
         if (noMoreMessages || fetchingOlderMessages || localMessages.length === 0) return;
 
-        const oldestMessage = localMessages[0]; // First message is the oldest (after reverse)
+        const oldestMessage = localMessages[0];
         if (!oldestMessage) return;
 
         console.log('Fetching older messages before:', oldestMessage.id);
@@ -31,7 +31,6 @@ function Home({ selectedConversation = null, messages = null }) {
             const response = await axios.get(route('message.loadOlder', oldestMessage.id));
             console.log('LoadOlder response:', response.data);
 
-            // Laravel Resource Collection returns: { data: [...], links: {...}, meta: {...} }
             const messagesData = response.data.data || response.data;
             const newMessages = Array.isArray(messagesData) ? [...messagesData].reverse() : [];
 
@@ -48,7 +47,6 @@ function Home({ selectedConversation = null, messages = null }) {
                 return [...uniqueNewMessages, ...prev];
             });
 
-            // Check if there are more pages
             if (response.data.links && !response.data.links.next) {
                 // No more pages - but we still prepended some messages
             }
@@ -56,8 +54,6 @@ function Home({ selectedConversation = null, messages = null }) {
                 setNoMoreMessages(true);
             }
 
-            // Scroll Correction
-            // Use setTimeout to allow DOM to update, then adjust scroll
             setTimeout(() => {
                 if (messagesContainerRef.current) {
                     const scrollHeightAfter = messagesContainerRef.current.scrollHeight;
@@ -99,7 +95,6 @@ function Home({ selectedConversation = null, messages = null }) {
     }, [noMoreMessages, localMessages]);
 
     useEffect(() => {
-        // Initial Scroll to Bottom
         setTimeout(() => {
             if (messagesContainerRef.current) {
                 messagesContainerRef.current.scrollTop =
@@ -107,12 +102,9 @@ function Home({ selectedConversation = null, messages = null }) {
             }
         }, 10);
     }, [selectedConversation]);
-    // Removed localMessages for auto-scroll to bottom, only on conversation change now. 
-    // New messages from pusher are handled separately probably or need a check
 
     useEffect(() => {
         const offCreated = on('message.created', (message) => {
-            // ... (Logic stays similar, but ensuring we don't break scroll)
             if (
                 selectedConversation &&
                 parseInt(message.group_id) === parseInt(selectedConversation.id)
@@ -121,7 +113,6 @@ function Home({ selectedConversation = null, messages = null }) {
                     const exists = prev.find((m) => m.id === message.id);
                     if (exists) return prev;
 
-                    // Auto-scroll if near bottom
                     setTimeout(() => {
                         if (messagesContainerRef.current) {
                             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -142,7 +133,6 @@ function Home({ selectedConversation = null, messages = null }) {
                     const exists = prev.find((m) => m.id === message.id);
                     if (exists) return prev;
 
-                    // Auto-scroll if near bottom
                     setTimeout(() => {
                         if (messagesContainerRef.current) {
                             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;

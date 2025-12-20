@@ -1,3 +1,140 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Headings - inherit color */
+.markdown-message h1 {
+    @apply text-2xl font-bold mb-2 mt-3 first:mt-0;
+}
+
+.markdown-message h2 {
+    @apply text-xl font-bold mb-2 mt-3 first:mt-0;
+}
+
+.markdown-message h3 {
+    @apply text-lg font-bold mb-1 mt-2 first:mt-0;
+}
+
+.markdown-message h4 {
+    @apply text-base font-bold mb-1 mt-2 first:mt-0;
+}
+
+.markdown-message h5 {
+    @apply text-sm font-bold mb-1 mt-2 first:mt-0;
+}
+
+.markdown-message h6 {
+    @apply text-xs font-bold opacity-80 mb-1 mt-2 first:mt-0;
+}
+
+/* Paragraphs */
+.markdown-message p {
+    @apply whitespace-pre-wrap mb-2 last:mb-0;
+}
+
+/* Bold & Italic - inherit color */
+.markdown-message strong {
+    @apply font-bold;
+}
+
+.markdown-message em {
+    @apply italic;
+}
+
+/* Strikethrough (GFM) */
+.markdown-message del {
+    @apply line-through opacity-60;
+}
+
+/* Links */
+.markdown-message a {
+    @apply text-cyan-400 hover:text-cyan-300 hover:underline;
+}
+
+/* Images */
+.markdown-message img {
+    @apply max-w-full h-auto rounded-lg my-2;
+}
+
+/* Inline Code - Simple like WhatsApp/Discord */
+.markdown-message code {
+    @apply bg-black/10 rounded px-1 py-0.5 font-mono text-sm;
+}
+
+/* Code Blocks - Simple dark background */
+.markdown-message pre {
+    @apply bg-black/10 rounded-lg p-3 my-2 overflow-x-auto;
+}
+
+.markdown-message pre code {
+    @apply bg-transparent p-0 block text-sm;
+}
+
+/* Blockquotes */
+.markdown-message blockquote {
+    @apply border-l-4 border-slate-500 pl-3 py-1 my-2 opacity-80 italic;
+}
+
+.markdown-message blockquote p {
+    @apply mb-0;
+}
+
+/* Unordered Lists */
+.markdown-message ul {
+    @apply pl-5 my-2 space-y-1;
+}
+
+.markdown-message ul li {
+    @apply list-disc;
+}
+
+/* Ordered Lists */
+.markdown-message ol {
+    @apply pl-5 my-2 space-y-1;
+}
+
+.markdown-message ol li {
+    @apply list-decimal;
+}
+
+/* Nested Lists */
+.markdown-message ul ul,
+.markdown-message ol ul {
+    @apply my-1 pl-4;
+}
+
+.markdown-message ul ol,
+.markdown-message ol ol {
+    @apply my-1 pl-4;
+}
+
+/* Task Lists (GFM) */
+.markdown-message input[type="checkbox"] {
+    @apply mr-2;
+}
+
+/* Tables (GFM) */
+.markdown-message table {
+    @apply w-full my-2 border-collapse text-sm;
+}
+
+.markdown-message thead {
+    @apply bg-black/20;
+}
+
+.markdown-message th {
+    @apply border border-slate-600 px-3 py-2 text-left font-semibold;
+}
+
+.markdown-message td {
+    @apply border border-slate-700 px-3 py-2;
+}
+
+.markdown-message tbody tr:nth-child(even) {
+    @apply bg-black/10;
+}
+
+/* Horizontal Rule */
+.markdown-message hr {
+    @apply border-slate-600 my-4;
+}
