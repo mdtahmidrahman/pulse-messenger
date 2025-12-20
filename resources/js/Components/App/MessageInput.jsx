@@ -4,6 +4,7 @@ import {
     PaperClipIcon,
     PhotoIcon,
     FaceSmileIcon,
+    HandThumbUpIcon,
 } from '@heroicons/react/24/solid';
 import NewMessageInput from './NewMessageInput';
 import axios from 'axios';
@@ -54,19 +55,36 @@ const MessageInput = ({ conversation = null }) => {
             });
     };
 
+    const onLikeClick = () => {
+        if (messageSending) return;
+        const formData = new FormData();
+        formData.append('message', '👍');
+        if (conversation.is_user) {
+            formData.append('receiver_id', conversation.id);
+        } else if (conversation.is_group) {
+            formData.append('group_id', conversation.id);
+        }
+        setMessageSending(true);
+        axios.post(route('message.store'), formData).then((response) => {
+            setMessageSending(false);
+            emit('message.created', response.data);
+        });
+    }
+
     return (
-        <div className="flex flex-wrap items-start border-t border-slate-700 py-3">
-            <div className="order-2 flex-1 xs:flex-none xs:order-1 p-2">
-                <button className="p-1 text-gray-400 hover:text-gray-300 relative">
-                    <PaperClipIcon className="w-6" />
+        <div className="flex items-center gap-4 border-t border-slate-700 py-3 px-3">
+            {/* Left: Attachment Icons */}
+            <div className="flex gap-1">
+                <button className="p-2 text-gray-400 hover:text-gray-300 relative">
+                    <PaperClipIcon className="w-5 h-5" />
                     <input
                         type="file"
                         multiple
                         className="absolute left-0 top-0 right-0 bottom-0 z-20 opacity-0 cursor-pointer"
                     />
                 </button>
-                <button className="p-1 text-gray-400 hover:text-gray-300 relative">
-                    <PhotoIcon className="w-6" />
+                <button className="p-2 text-gray-400 hover:text-gray-300 relative">
+                    <PhotoIcon className="w-5 h-5" />
                     <input
                         type="file"
                         multiple
@@ -75,32 +93,42 @@ const MessageInput = ({ conversation = null }) => {
                     />
                 </button>
             </div>
-            <div className="order-1 px-3 xs:p-0 min-w-[220px] basis-full xs:basis-0 xs:order-2 flex-1 relative">
-                <div className="flex">
+
+            {/* Center: Input Field */}
+            <div className="flex-1 relative">
+                <div className="rounded-3xl bg-slate-800 border border-slate-700">
                     <NewMessageInput
                         value={newMessage}
                         onSend={onSendClick}
                         onChange={(ev) => setNewMessage(ev.target.value)}
+                        className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-gray-200 resize-none py-3 px-4 min-h-[44px] max-h-40"
                     />
-                    <button
-                        onClick={onSendClick}
-                        disabled={messageSending}
-                        className="btn btn-info rounded-l-none"
-                    >
-                        {messageSending && (
-                            <span className="loading loading-spinner loading-xs"></span>
-                        )}
-                        <PaperAirplaneIcon className="w-6" />
-                        <span className="hidden sm:inline">Send</span>
-                    </button>
                 </div>
                 {inputErrorMessage && (
-                    <p className="text-xs text-red-400">{inputErrorMessage}</p>
+                    <p className="text-xs text-red-400 mt-1 pl-2">{inputErrorMessage}</p>
                 )}
             </div>
-            <div className="order-3 xs:order-3 p-2 flex">
-                <button className="p-1 text-gray-400 hover:text-gray-300">
-                    <FaceSmileIcon className="w-6" />
+
+            {/* Send Button */}
+            <button
+                onClick={onSendClick}
+                disabled={messageSending}
+                className="bg-cyan-400 hover:bg-cyan-500 text-slate-900 rounded-full p-3 shrink-0 transition-colors disabled:opacity-50 flex items-center justify-center w-12 h-12"
+            >
+                {messageSending ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                    <PaperAirplaneIcon className="w-6 h-6" />
+                )}
+            </button>
+
+            {/* Right: Additional Icons */}
+            <div className="flex gap-1">
+                <button className="p-2 text-gray-400 hover:text-gray-300">
+                    <FaceSmileIcon className="w-5 h-5" />
+                </button>
+                <button onClick={onLikeClick} className="p-2 text-gray-400 hover:text-gray-300">
+                    <HandThumbUpIcon className="w-5 h-5" />
                 </button>
             </div>
         </div>
