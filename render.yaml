@@ -68,6 +68,13 @@ services:
         value: 443
       - key: VITE_REVERB_SCHEME
         value: https
+      # Admin User Seeding (Set these in Render Dashboard for security)
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
 
 databases:
   - name: pulse-db

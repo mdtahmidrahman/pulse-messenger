@@ -5,6 +5,10 @@ set -e
 echo "Running migrations..."
 php artisan migrate --force
 
+# Seed admin user (safe to run multiple times due to updateOrCreate)
+echo "Seeding admin user..."
+php artisan db:seed --class=AdminUserSeeder --force
+
 # Optimize Laravel
 echo "Caching configuration..."
 php artisan package:discover --ansi
