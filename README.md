@@ -28,6 +28,20 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 
 ---
 
+## Live Demo
+
+**Live Link:** [https://pulse-messenger-7xex.onrender.com](https://pulse-messenger-7xex.onrender.com)
+
+**Demo Admin Credentials:**
+| Field | Value |
+|-------|-------|
+| Email | `test@admin.com` |
+| Password | `12121212` |
+
+> **Note:** The free hosting may take ~50 seconds to wake up on first visit if inactive.
+
+---
+
 ## Features
 
 ### Core Messaging
