@@ -6,6 +6,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Test route to verify routing works
+Route::get('/broadcasting/test', function () {
+    error_log('=== BROADCAST TEST ROUTE HIT ===');
+    return response()->json(['status' => 'ok', 'user' => auth()->id()]);
+})->middleware(['web']);
+
 // Broadcasting auth route
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
     ->middleware(['web', 'auth'])

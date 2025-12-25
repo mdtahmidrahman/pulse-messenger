@@ -12,23 +12,27 @@ class BroadcastController extends Controller
      */
     public function authenticate(Request $request)
     {
-        // Log for debugging
-        \Log::info('Broadcasting auth request', [
-            'user' => $request->user()?->id,
-            'channel' => $request->input('channel_name'),
-            'socket_id' => $request->input('socket_id'),
-        ]);
-
+        // Write directly to stderr for Render logs
+        error_log('=== BROADCAST AUTH HIT ===');
+        error_log('User: ' . ($request->user()?->id ?? 'NULL'));
+        error_log('Channel: ' . $request->input('channel_name'));
+        error_log('Socket ID: ' . $request->input('socket_id'));
+        
+        // If no user, return 401
         if (!$request->user()) {
-            \Log::error('Broadcasting auth failed: No authenticated user');
-            return response()->json(['error' => 'Unauthorized'], 401);
+            error_log('=== NO USER - RETURNING 401 ===');
+            return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
         try {
-            return Broadcast::auth($request);
+            $result = Broadcast::auth($request);
+            error_log('=== BROADCAST AUTH RESULT ===');
+            error_log(print_r($result, true));
+            return $result;
         } catch (\Exception $e) {
-            \Log::error('Broadcasting auth exception', ['error' => $e->getMessage()]);
-            return response()->json(['error' => $e->getMessage()], 500);
+            error_log('=== BROADCAST AUTH EXCEPTION ===');
+            error_log($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 403);
         }
     }
 }
