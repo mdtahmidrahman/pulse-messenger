@@ -116,13 +116,19 @@ class MessageController extends Controller
                 error_log('Receiver: ' . ($message->receiver_id ?? 'null'));
                 error_log('Group: ' . ($message->group_id ?? 'null'));
                 
+                // Debug: Log broadcast config
+                $config = config('broadcasting.connections.reverb');
+                error_log('Reverb Config: ' . json_encode($config['options'] ?? []));
+                error_log('Broadcast Driver: ' . config('broadcasting.default'));
+                
                 broadcast(new SocketMessage($message));
                 
-                error_log('=== BROADCAST SUCCESS ===');
+                error_log('=== BROADCAST CALL COMPLETED ===');
             } catch (\Exception $broadcastError) {
                 error_log('=== BROADCAST ERROR ===');
                 error_log('Error: ' . $broadcastError->getMessage());
                 error_log('File: ' . $broadcastError->getFile() . ':' . $broadcastError->getLine());
+                error_log('Trace: ' . $broadcastError->getTraceAsString());
                 \Log::error('Broadcast error: ' . $broadcastError->getMessage());
                 // Continue without broadcast - message still saved
             }
