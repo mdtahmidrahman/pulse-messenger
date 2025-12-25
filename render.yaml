@@ -2,7 +2,6 @@ services:
   - type: web
     name: pulse-messenger
     runtime: docker
-    region: singapore
     plan: free
     branch: main
     envVars:
