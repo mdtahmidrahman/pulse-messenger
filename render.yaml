@@ -11,6 +11,12 @@ services:
         value: production
       - key: APP_DEBUG
         value: false
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
       - key: APP_URL
         sync: false # Render auto-generates this, user might need to update usually
       - key: APP_KEY
