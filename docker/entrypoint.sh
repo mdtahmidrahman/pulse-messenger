@@ -9,12 +9,12 @@ php artisan migrate --force
 echo "Seeding admin user..."
 php artisan db:seed --class=AdminUserSeeder --force
 
-# Optimize Laravel (but DON'T cache config - env vars are injected at runtime by Render)
+# Optimize Laravel (but DON'T cache config/routes - env vars and providers load at runtime)
 echo "Preparing Laravel..."
 php artisan package:discover --ansi
 php artisan config:clear
+php artisan route:clear
 php artisan event:cache
-php artisan route:cache
 php artisan view:cache
 
 # Start Supervisord

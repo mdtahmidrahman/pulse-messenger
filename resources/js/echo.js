@@ -11,4 +11,5 @@ window.Echo = new Echo({
     wssPort: window.ReverbConfig?.port ?? import.meta.env.VITE_REVERB_PORT ?? 443,
     forceTLS: (window.ReverbConfig?.scheme ?? import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
+    authEndpoint: '/broadcasting/auth',
 });
