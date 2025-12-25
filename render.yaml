@@ -1,0 +1,70 @@
+services:
+  - type: web
+    name: pulse-messenger
+    runtime: docker
+    region: singapore
+    plan: free
+    branch: main
+    envVars:
+      - key: APP_NAME
+        value: PulseMessenger
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        sync: false # Render auto-generates this, user might need to update usually
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: pulse-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: pulse-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: pulse-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: pulse-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: pulse-db
+          property: password
+      - key: REVERB_APP_ID
+        value: 123456
+      - key: REVERB_APP_KEY
+        generateValue: true
+      - key: REVERB_APP_SECRET
+        generateValue: true
+      - key: REVERB_HOST
+        value: 0.0.0.0
+      - key: REVERB_PORT
+        value: 8080
+      - key: REVERB_SCHEME
+        value: http
+      # In production on Render with HTTPS, client connects via WSS (managed by Nginx/Cloudflare)
+      # But internally Reverb listens on HTTP.
+      # Client-side .env needs to know these.
+      - key: VITE_REVERB_APP_KEY
+        sync: false # Needs to match REVERB_APP_KEY
+      - key: VITE_REVERB_HOST
+        sync: false # Should be the Render URL
+      - key: VITE_REVERB_PORT
+        value: 443
+      - key: VITE_REVERB_SCHEME
+        value: https
+
+databases:
+  - name: pulse-db
+    plan: free
+    databaseName: pulse
+    user: pulse
+

@@ -38,14 +38,13 @@ const ConversationItem = ({
             preserveState
             className={
                 'conversation-item flex items-center gap-2 p-2 text-gray-300 transition-all hover:bg-black/30 ' +
-                classes +
-                (conversation.is_user && currentUser.is_admin && conversation.blocked_at
-                    ? ' opacity-50'
-                    : '')
+                classes
             }
         >
             {conversation.is_user && (
-                <UserAvatar user={conversation} online={online} />
+                <div className={currentUser.is_admin && conversation.blocked_at ? 'opacity-50' : ''}>
+                    <UserAvatar user={conversation} online={online} />
+                </div>
             )}
             {conversation.is_group && <GroupAvatar />}
             <div
