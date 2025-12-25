@@ -7,6 +7,7 @@ php artisan migrate --force
 
 # Optimize Laravel
 echo "Caching configuration..."
+php artisan package:discover --ansi
 php artisan config:cache
 php artisan event:cache
 php artisan route:cache
