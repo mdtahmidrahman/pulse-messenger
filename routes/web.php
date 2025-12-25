@@ -36,7 +36,6 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-
 Route::middleware(['auth', 'verified'])->group(function()
 {
     Route::get('/chat', [HomeController::class, 'home'])->name('home');
