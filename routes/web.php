@@ -1,9 +1,14 @@
 <?php
+use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// Custom broadcasting auth route (with explicit JSON response handling)
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
+    ->middleware(['web', 'auth']);
 
 Route::middleware(['auth', 'verified'])->group(function()
 {

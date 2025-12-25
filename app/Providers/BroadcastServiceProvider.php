@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
 class BroadcastServiceProvider extends ServiceProvider
@@ -12,8 +11,8 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Broadcast::routes(['middleware' => ['web', 'auth']]);
-
+        // Custom broadcasting auth route is defined in routes/web.php
+        // This just loads the channel definitions
         require base_path('routes/channels.php');
     }
 }
