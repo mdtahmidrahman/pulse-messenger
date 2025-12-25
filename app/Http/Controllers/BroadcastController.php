@@ -12,27 +12,63 @@ class BroadcastController extends Controller
      */
     public function authenticate(Request $request)
     {
-        // Write directly to stderr for Render logs
         error_log('=== BROADCAST AUTH HIT ===');
         error_log('User: ' . ($request->user()?->id ?? 'NULL'));
         error_log('Channel: ' . $request->input('channel_name'));
-        error_log('Socket ID: ' . $request->input('socket_id'));
         
-        // If no user, return 401
         if (!$request->user()) {
             error_log('=== NO USER - RETURNING 401 ===');
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        try {
-            $result = Broadcast::auth($request);
-            error_log('=== BROADCAST AUTH RESULT ===');
-            error_log(print_r($result, true));
-            return $result;
-        } catch (\Exception $e) {
-            error_log('=== BROADCAST AUTH EXCEPTION ===');
-            error_log($e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 403);
+        $channelName = $request->input('channel_name');
+        $socketId = $request->input('socket_id');
+        
+        // Manually authorize based on channel patterns
+        $authorized = $this->authorizeChannel($request->user(), $channelName);
+        
+        if (!$authorized) {
+            error_log('=== CHANNEL NOT AUTHORIZED ===');
+            return response()->json(['message' => 'Forbidden'], 403);
         }
+
+        // Generate the auth signature manually
+        $appKey = config('reverb.apps.apps.0.key');
+        $appSecret = config('reverb.apps.apps.0.secret');
+        
+        error_log('App Key: ' . $appKey);
+        error_log('App Secret exists: ' . ($appSecret ? 'yes' : 'no'));
+        
+        $signature = hash_hmac('sha256', $socketId . ':' . $channelName, $appSecret);
+        $auth = $appKey . ':' . $signature;
+        
+        error_log('=== AUTH SUCCESS ===');
+        error_log('Auth: ' . $auth);
+        
+        return response()->json(['auth' => $auth]);
+    }
+    
+    private function authorizeChannel($user, string $channelName): bool
+    {
+        // Online presence channel
+        if ($channelName === 'private-online') {
+            return true;
+        }
+        
+        // User-to-user message channel: private-message.user.{id1}-{id2}
+        if (preg_match('/^private-message\.user\.(\d+)-(\d+)$/', $channelName, $matches)) {
+            $userId1 = (int) $matches[1];
+            $userId2 = (int) $matches[2];
+            return $user->id === $userId1 || $user->id === $userId2;
+        }
+        
+        // Group message channel: private-message.group.{groupId}
+        if (preg_match('/^private-message\.group\.(\d+)$/', $channelName, $matches)) {
+            $groupId = (int) $matches[1];
+            return $user->groups->contains('id', $groupId);
+        }
+        
+        error_log('Unknown channel pattern: ' . $channelName);
+        return false;
     }
 }
