@@ -6,6 +6,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PushSubscriptionController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\HandleInertiaRequests;
 
@@ -31,6 +32,9 @@ Route::get('/', function () {
         'isLoggedIn' => false,
     ]);
 })->name('welcome');
+
+// Broadcasting auth routes
+Broadcast::routes(['middleware' => ['web', 'auth']]);
 
 Route::middleware(['auth', 'verified'])->group(function()
 {
