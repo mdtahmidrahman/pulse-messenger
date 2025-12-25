@@ -33,9 +33,6 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-// Broadcasting auth routes
-Broadcast::routes(['middleware' => ['web', 'auth']]);
-
 Route::middleware(['auth', 'verified'])->group(function()
 {
     Route::get('/chat', [HomeController::class, 'home'])->name('home');
