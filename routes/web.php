@@ -19,6 +19,12 @@ Route::get('/broadcasting/test', function () {
     return response()->json(['status' => 'ok', 'user' => auth()->id()]);
 })->middleware(['web']);
 
+// Test route to verify routing works
+Route::get('/broadcasting/test', function () {
+    error_log('=== BROADCAST TEST ROUTE HIT ===');
+    return response()->json(['status' => 'ok', 'user' => auth()->id()]);
+})->middleware(['web']);
+
 // Broadcasting auth route
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
     ->middleware(['web', 'auth'])
