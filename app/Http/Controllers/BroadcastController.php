@@ -27,7 +27,7 @@ class BroadcastController extends Controller
         // Manually authorize based on channel patterns
         $authorized = $this->authorizeChannel($request->user(), $channelName);
         
-        if (!$authorized) {
+        if ($authorized === false) {
             error_log('=== CHANNEL NOT AUTHORIZED ===');
             return response()->json(['message' => 'Forbidden'], 403);
         }
@@ -36,23 +36,45 @@ class BroadcastController extends Controller
         $appKey = config('reverb.apps.apps.0.key');
         $appSecret = config('reverb.apps.apps.0.secret');
         
-        error_log('App Key: ' . $appKey);
-        error_log('App Secret exists: ' . ($appSecret ? 'yes' : 'no'));
+        // For presence channels, we need to include channel_data
+        $isPresenceChannel = str_starts_with($channelName, 'presence-');
         
-        $signature = hash_hmac('sha256', $socketId . ':' . $channelName, $appSecret);
-        $auth = $appKey . ':' . $signature;
-        
-        error_log('=== AUTH SUCCESS ===');
-        error_log('Auth: ' . $auth);
-        
-        return response()->json(['auth' => $auth]);
+        if ($isPresenceChannel && is_array($authorized)) {
+            // Presence channel with user data
+            $channelData = json_encode($authorized);
+            $stringToSign = $socketId . ':' . $channelName . ':' . $channelData;
+            $signature = hash_hmac('sha256', $stringToSign, $appSecret);
+            $auth = $appKey . ':' . $signature;
+            
+            error_log('=== PRESENCE AUTH SUCCESS ===');
+            
+            return response()->json([
+                'auth' => $auth,
+                'channel_data' => $channelData,
+            ]);
+        } else {
+            // Private channel
+            $signature = hash_hmac('sha256', $socketId . ':' . $channelName, $appSecret);
+            $auth = $appKey . ':' . $signature;
+            
+            error_log('=== AUTH SUCCESS ===');
+            error_log('Auth: ' . $auth);
+            
+            return response()->json(['auth' => $auth]);
+        }
     }
     
-    private function authorizeChannel($user, string $channelName): bool
+    private function authorizeChannel($user, string $channelName): bool|array
     {
-        // Online presence channel
-        if ($channelName === 'private-online') {
-            return true;
+        // Presence online channel - returns user data for presence
+        if ($channelName === 'presence-online') {
+            return [
+                'user_id' => $user->id,
+                'user_info' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                ],
+            ];
         }
         
         // User-to-user message channel: private-message.user.{id1}-{id2}
