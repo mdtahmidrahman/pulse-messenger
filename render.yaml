@@ -3,7 +3,7 @@ services:
     name: pulse-messenger
     runtime: docker
     plan: free
-    branch: main
+    branch: deployment
     envVars:
       - key: APP_NAME
         value: PulseMessenger
