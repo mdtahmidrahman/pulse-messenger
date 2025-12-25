@@ -1,5 +1,8 @@
 <?php
+<<<<<<< HEAD
 use App\Http\Controllers\AdminController;
+=======
+>>>>>>> 5a1496a (Add custom broadcasting auth controller with logging)
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
@@ -32,6 +35,7 @@ Route::get('/', function () {
         'isLoggedIn' => false,
     ]);
 })->name('welcome');
+
 
 Route::middleware(['auth', 'verified'])->group(function()
 {
