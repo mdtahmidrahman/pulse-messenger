@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust all proxies (Render terminates SSL at load balancer)
         $middleware->trustProxies(at: '*');
 
+        // Exclude broadcasting auth from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'broadcasting/auth',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
