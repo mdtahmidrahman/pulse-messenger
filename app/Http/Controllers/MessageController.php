@@ -110,8 +110,19 @@ class MessageController extends Controller
             $message->load('attachments');
             
             try {
+                error_log('=== BROADCASTING MESSAGE ===');
+                error_log('Message ID: ' . $message->id);
+                error_log('Sender: ' . $message->sender_id);
+                error_log('Receiver: ' . ($message->receiver_id ?? 'null'));
+                error_log('Group: ' . ($message->group_id ?? 'null'));
+                
                 broadcast(new SocketMessage($message));
+                
+                error_log('=== BROADCAST SUCCESS ===');
             } catch (\Exception $broadcastError) {
+                error_log('=== BROADCAST ERROR ===');
+                error_log('Error: ' . $broadcastError->getMessage());
+                error_log('File: ' . $broadcastError->getFile() . ':' . $broadcastError->getLine());
                 \Log::error('Broadcast error: ' . $broadcastError->getMessage());
                 // Continue without broadcast - message still saved
             }
