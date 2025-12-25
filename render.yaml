@@ -19,10 +19,12 @@ services:
         value: database
       - key: QUEUE_CONNECTION
         value: database
+      - key: BROADCAST_CONNECTION
+        value: reverb
       - key: APP_URL
         sync: false # Render auto-generates this, user might need to update usually
       - key: APP_KEY
-        generateValue: true
+        sync: false # Must be set manually in Render Dashboard
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
