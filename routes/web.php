@@ -6,9 +6,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-// Custom broadcasting auth route (with explicit JSON response handling)
+// Broadcasting auth route
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
-    ->middleware(['web', 'auth']);
+    ->middleware(['web', 'auth'])
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
 Route::middleware(['auth', 'verified'])->group(function()
 {
