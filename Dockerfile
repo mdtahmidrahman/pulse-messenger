@@ -24,7 +24,8 @@ RUN apk add --no-cache \
     zip \
     unzip \
     postgresql-dev \
-    oniguruma-dev
+    oniguruma-dev \
+    && mkdir -p /var/log/supervisor
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
