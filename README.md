@@ -38,6 +38,8 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 | Email | `test@admin.com` |
 | Password | `12121212` |
 
+**Demo New(any) User's Password:** 12345678
+
 > **Note:** The free hosting may take ~50 seconds to wake up on first visit if inactive.
 
 ---
