@@ -108,7 +108,13 @@ export default function UpdateProfileInformation({
                     </div>
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2">
-                            <text>Change Avatar</text>
+                            <button
+                                type="button"
+                                onClick={triggerFileInput}
+                                className="btn btn-sm btn-outline"
+                            >
+                                Change Avatar
+                            </button>
                             {hasCustomAvatar && (
                                 <button
                                     type="button"

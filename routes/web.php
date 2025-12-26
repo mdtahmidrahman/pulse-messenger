@@ -73,7 +73,6 @@ Route::middleware('auth')->group(function()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
-
     // Push subscriptions
     Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
     Route::post('/push-subscriptions/delete', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
