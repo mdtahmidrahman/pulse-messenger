@@ -40,7 +40,7 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 
 **Demo New(any) User's Password:** 12345678
 
-> **Note:** The free hosting may take ~50 seconds to wake up on first visit if inactive.
+> **Note:** The free hosting runs on Render's free tier which spins down after 15 minutes of inactivity and may take ~50 seconds to wake up on first visit. Additionally, uploaded files (images, attachments) are stored in ephemeral storage and will be lost after each deployment or restart.
 
 ---
 
