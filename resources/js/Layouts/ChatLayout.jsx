@@ -178,8 +178,8 @@ const ChatLayout = ({ children }) => {
                 {/* Sidebar - Conversation List */}
                 <div
                     className={`
-                        absolute inset-0 z-20 flex flex-col overflow-hidden bg-slate-800 transition-transform duration-300 ease-in-out
-                        sm:relative sm:z-auto sm:w-[220px] md:w-[300px] sm:translate-x-0
+                        fixed top-16 left-0 right-0 bottom-0 z-20 flex flex-col overflow-hidden bg-slate-800 transition-transform duration-300 ease-in-out
+                        sm:relative sm:top-0 sm:z-auto sm:w-[220px] md:w-[300px] sm:translate-x-0
                         ${selectedConversation ? '-translate-x-full' : 'translate-x-0'}
                     `}
                 >
