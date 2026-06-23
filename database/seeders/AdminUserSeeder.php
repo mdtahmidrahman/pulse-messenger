@@ -31,6 +31,7 @@ class AdminUserSeeder extends Seeder
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make($password),
                 'is_admin' => true,
+                'approved_at' => Carbon::now(),
             ]
         );
 
