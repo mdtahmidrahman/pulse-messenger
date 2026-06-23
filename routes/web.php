@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
@@ -17,9 +18,20 @@ Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
     ->middleware(['web', 'auth'])
     ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
+
+    return \Inertia\Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'isLoggedIn' => false,
+    ]);
+})->name('welcome');
 Route::middleware(['auth', 'verified'])->group(function()
 {
-    Route::get('/', [HomeController::class, 'home'])->name('home');
+    Route::get('/chat', [HomeController::class, 'home'])->name('home');
 
     Route::get('/user/{user}', [MessageController::class, 'byuser'])->name('chat.user');
     Route::get('/group/{group}', [MessageController::class, 'byGroup'])->name('chat.group');
@@ -30,9 +42,13 @@ Route::middleware(['auth', 'verified'])->group(function()
     Route::get('/message/attachment/{attachment}', [MessageController::class, 'downloadAttachment'])->name('message.downloadAttachment');
 
     Route::middleware(['admin'])->group(function(){
+        Route::get('/admin/approvals', [AdminController::class, 'approvals'])->name('admin.approvals');
+        
         Route::post('/user', [UserController::class, 'store'])->name('user.store');
         Route::post('/user/change-role/{user}', [UserController::class, 'changeRole'])->name('user.changeRole');
         Route::post('/user/block-unblock/{user}', [UserController::class, 'blockUnblock'])->name('user.blockUnblock');
+        Route::post('/user/approve/{user}', [UserController::class, 'approve'])->name('user.approve');
+        Route::post('/user/decline/{user}', [UserController::class, 'decline'])->name('user.decline');
     });
 });
 

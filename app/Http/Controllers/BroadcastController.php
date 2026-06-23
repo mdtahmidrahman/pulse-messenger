@@ -89,6 +89,11 @@ class BroadcastController extends Controller
             $groupId = (int) $matches[1];
             return $user->groups->contains('id', $groupId);
         }
+
+        // Admin notifications channel: private-admin.notifications
+        if ($channelName === 'private-admin.notifications') {
+            return (bool) $user->is_admin;
+        }
         
         error_log('Unknown channel pattern: ' . $channelName);
         return false;

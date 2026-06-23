@@ -4,8 +4,8 @@ import {
     PaperClipIcon,
     PhotoIcon,
     FaceSmileIcon,
-    HandThumbUpIcon,
     XMarkIcon,
+    PlusCircleIcon,
 } from '@heroicons/react/24/solid';
 import NewMessageInput from './NewMessageInput';
 import axios from 'axios';
@@ -17,6 +17,7 @@ const MessageInput = ({ conversation = null }) => {
     const [inputErrorMessage, setInputErrorMessage] = useState('');
     const [messageSending, setMessageSending] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showAttachments, setShowAttachments] = useState(false);
     const [chosenFiles, setChosenFiles] = useState([]);
     const { emit } = useEventBus();
 
@@ -88,22 +89,6 @@ const MessageInput = ({ conversation = null }) => {
             });
     };
 
-    const onLikeClick = () => {
-        if (messageSending) return;
-        const formData = new FormData();
-        formData.append('message', '👍');
-        if (conversation.is_user) {
-            formData.append('receiver_id', conversation.id);
-        } else if (conversation.is_group) {
-            formData.append('group_id', conversation.id);
-        }
-        setMessageSending(true);
-        axios.post(route('message.store'), formData).then((response) => {
-            setMessageSending(false);
-            emit('message.created', response.data);
-        });
-    };
-
     const onEmojiClick = (emojiObject) => {
         setNewMessage(newMessage + emojiObject.emoji);
         setShowEmojiPicker(false);
@@ -148,10 +133,54 @@ const MessageInput = ({ conversation = null }) => {
             )}
 
             {/* Input Area */}
-            <div className="flex items-center gap-4 py-3 px-3">
+            <div className="flex items-center gap-2 sm:gap-4 py-3 px-2 sm:px-3">
                 {/* Left: Attachment Icons */}
-                <div className="flex gap-1">
+                <div className="flex items-center relative">
+                    {/* Mobile Expand Attachments Button */}
                     <button
+                        onClick={() => setShowAttachments(!showAttachments)}
+                        className="sm:hidden p-2 text-gray-400 hover:text-gray-300 transition-transform"
+                        style={{ transform: showAttachments ? 'rotate(45deg)' : 'rotate(0)' }}
+                    >
+                        <PlusCircleIcon className="w-6 h-6" />
+                    </button>
+
+                    {/* Mobile Floating Attachment Menu */}
+                    {showAttachments && (
+                        <>
+                            {/* Backdrop */}
+                            <div 
+                                className="fixed inset-0 z-10 sm:hidden" 
+                                onClick={() => setShowAttachments(false)} 
+                            />
+                            
+                            <div className="absolute bottom-full left-0 mb-2 z-20 bg-slate-800 border border-slate-700 rounded-2xl p-2 shadow-lg flex flex-col gap-1 w-48 sm:hidden transform origin-bottom-left animate-pop">
+                                <button
+                                    onClick={() => { fileInputRef.current?.click(); setShowAttachments(false); }}
+                                    className="flex items-center gap-3 px-3 py-2 hover:bg-slate-700 rounded-xl transition-colors text-gray-200 text-left"
+                                >
+                                    <div className="bg-indigo-500 p-2 rounded-full shadow-sm">
+                                        <PaperClipIcon className="w-5 h-5 text-white" />
+                                    </div>
+                                    <span className="font-medium">Document</span>
+                                </button>
+                                
+                                <button
+                                    onClick={() => { imageInputRef.current?.click(); setShowAttachments(false); }}
+                                    className="flex items-center gap-3 px-3 py-2 hover:bg-slate-700 rounded-xl transition-colors text-gray-200 text-left"
+                                >
+                                    <div className="bg-pink-500 p-2 rounded-full shadow-sm">
+                                        <PhotoIcon className="w-5 h-5 text-white" />
+                                    </div>
+                                    <span className="font-medium text-sm">Photos & Videos</span>
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Desktop Inline Attachment Buttons */}
+                    <div className="hidden sm:flex gap-1">
+                        <button
                         onClick={() => fileInputRef.current?.click()}
                         className="p-2 text-gray-400 hover:text-gray-300"
                     >
@@ -179,11 +208,12 @@ const MessageInput = ({ conversation = null }) => {
                         onChange={onFileChange}
                         className="hidden"
                     />
+                    </div>
                 </div>
 
                 {/* Center: Input Field */}
                 <div className="flex-1 relative">
-                    <div className="rounded-3xl bg-slate-800 border border-slate-700">
+                    <div className="rounded-2xl bg-slate-800 border border-slate-700 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all shadow-sm">
                         <NewMessageInput
                             value={newMessage}
                             onSend={onSendClick}
@@ -240,10 +270,6 @@ const MessageInput = ({ conversation = null }) => {
                             </div>
                         </>
                     )}
-
-                    <button onClick={onLikeClick} className="p-2 text-gray-400 hover:text-gray-300">
-                        <HandThumbUpIcon className="w-5 h-5" />
-                    </button>
                 </div>
             </div>
         </div>

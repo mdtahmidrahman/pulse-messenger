@@ -3,7 +3,8 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import UserModal from '@/Components/App/UserModal';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { useEventBus } from '@/EventBus';
 import { useToast } from '@/ToastContext';
@@ -12,7 +13,7 @@ import { UserPlusIcon } from '@heroicons/react/24/solid';
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
-    const conversations = page.props.conversations;
+    const conversations = page.props.conversations || [];
     const selectedConversation = page.props.selectedConversation;
     const { emit, on } = useEventBus();
     const { showToast } = useToast();
@@ -20,6 +21,19 @@ export default function AuthenticatedLayout({ header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
     const [showUserModal, setShowUserModal] = useState(false);
+
+    const pendingUsers = conversations.filter((c) => c.is_user && !c.approved_at);
+
+    const approveUser = (userId) => {
+        axios.post(route('user.approve', userId))
+            .then((res) => {
+                showToast(res.data.message);
+                router.reload({ only: ['conversations'] });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    };
 
     // Listen for new message notifications and show toast
     useEffect(() => {
@@ -53,6 +67,22 @@ export default function AuthenticatedLayout({ header, children }) {
             offNotification();
         };
     }, [on, selectedConversation, showToast]);
+
+    // Admin Real-time Notifications
+    useEffect(() => {
+        if (!user.is_admin) return;
+
+        const channel = Echo.private('admin.notifications')
+            .listen('UserRegisteredForApproval', (e) => {
+                showToast(`New user registered for approval: ${e.user.name}`);
+                router.reload({ only: ['conversations', 'pendingUsers'] }); // Refresh the pending approvals count and list
+            });
+
+        return () => {
+            channel.stopListening('UserRegisteredForApproval');
+            Echo.leave('admin.notifications');
+        };
+    }, [user.is_admin, showToast]);
 
     useEffect(() => {
         conversations.forEach((conversation) => {
@@ -121,7 +151,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Link href="/">
+                                <Link href={route('home')}>
                                     <ApplicationLogo className="block h-9 w-auto fill-current text-base-content" />
                                 </Link>
                             </div>
@@ -133,6 +163,26 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Home
                                 </NavLink>
+                                <NavLink
+                                    href={route('profile.edit')}
+                                    active={route().current('profile.edit')}
+                                >
+                                    Profile
+                                </NavLink>
+                                {!!user.is_admin && (
+                                    <NavLink
+                                        href={route('admin.approvals')}
+                                        active={route().current('admin.approvals')}
+                                        className="flex items-center gap-2"
+                                    >
+                                        Pending Approvals
+                                        {pendingUsers.length > 0 && (
+                                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                                {pendingUsers.length}
+                                            </span>
+                                        )}
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -205,7 +255,18 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="-me-2 flex items-center sm:hidden gap-2">
+                            {/* Add User Button for Mobile */}
+                            {!!user.is_admin && (
+                                <button
+                                    onClick={() => setShowUserModal(true)}
+                                    className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                    title="Add New User"
+                                >
+                                    <UserPlusIcon className="w-5 h-5" />
+                                </button>
+                            )}
+
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -251,7 +312,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden z-30 relative bg-slate-800'
+                        ' sm:hidden z-30 relative bg-base-200 shadow-inner'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
@@ -261,6 +322,20 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Home
                         </ResponsiveNavLink>
+                        {!!user.is_admin && (
+                            <ResponsiveNavLink
+                                href={route('admin.approvals')}
+                                active={route().current('admin.approvals')}
+                                className="flex items-center gap-2"
+                            >
+                                Pending Approvals
+                                {pendingUsers.length > 0 && (
+                                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                        {pendingUsers.length}
+                                    </span>
+                                )}
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-base-200 pb-1 pt-4">

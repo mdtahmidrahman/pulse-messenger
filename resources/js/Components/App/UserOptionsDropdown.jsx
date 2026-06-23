@@ -5,7 +5,8 @@ import {
     LockClosedIcon,
     LockOpenIcon,
     ShieldCheckIcon,
-    UserIcon
+    UserIcon,
+    CheckCircleIcon
 } from '@heroicons/react/24/solid';
 import { usePage, router } from '@inertiajs/react';
 import axios from 'axios';
@@ -48,8 +49,16 @@ export default function UserOptionsDropdown({ conversation }) {
             });
     };
 
+
+
+    const stopPropagation = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
-        <Menu as="div" className="relative inline-block text-left">
+        <div onClick={stopPropagation}>
+            <Menu as="div" className="relative inline-block text-left">
             <div>
                 <Menu.Button className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-black/40 transition-colors">
                     <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
@@ -66,6 +75,8 @@ export default function UserOptionsDropdown({ conversation }) {
             >
                 <Menu.Items className="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
+
+
                         {/* Change Role Option */}
                         <Menu.Item>
                             {({ active }) => (
@@ -115,6 +126,7 @@ export default function UserOptionsDropdown({ conversation }) {
                     </div>
                 </Menu.Items>
             </Transition>
-        </Menu>
+            </Menu>
+        </div>
     );
 }

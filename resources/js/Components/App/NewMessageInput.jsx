@@ -20,10 +20,10 @@ const NewMessageInput = ({ value, onChange, onSend, className }) => {
     const adjustHeight = () => {
         setTimeout(() => {
             if (input.current) {
-                input.current.style.height = 'auto';
+                input.current.style.height = '0px';
                 input.current.style.height = input.current.scrollHeight + 1 + 'px';
             }
-        }, 100);
+        }, 10);
     };
 
     useEffect(() => {

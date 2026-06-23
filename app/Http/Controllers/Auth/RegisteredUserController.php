@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\UserRegisteredForApproval;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -43,9 +44,8 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+        event(new UserRegisteredForApproval($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')->with('status', 'Registration successful! Please wait for an admin to approve your account.');
     }
 }
