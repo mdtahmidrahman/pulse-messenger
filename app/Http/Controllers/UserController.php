@@ -26,7 +26,7 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\UserCreatedMail($user, $rawPassword));
+        Mail::to($user->email)->queue(new \App\Mail\UserCreatedMail($user, $rawPassword));
 
         return redirect()->back();
     } 
