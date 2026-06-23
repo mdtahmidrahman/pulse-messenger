@@ -28,7 +28,7 @@ const ChatLayout = ({ children }) => {
     const startResizing = useCallback((e) => {
         e.preventDefault();
         isResizing.current = true;
-        
+
         const onMouseMove = (moveEvent) => {
             if (!isResizing.current) return;
             const newWidth = moveEvent.clientX;
@@ -214,7 +214,7 @@ const ChatLayout = ({ children }) => {
                 <div
                     style={isMobile ? { width: '100%', flexShrink: 0 } : { width: `${sidebarWidth}px`, flexShrink: 0 }}
                     className={`
-                        transition-all duration-300 ease-in-out flex flex-col overflow-hidden bg-slate-800
+                        relative transition-all duration-200 ease-in-out flex flex-col overflow-hidden bg-slate-800
                         ${selectedConversation ? '-ml-[100%] sm:ml-0' : ''}
                     `}
                 >
