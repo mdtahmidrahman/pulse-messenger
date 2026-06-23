@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email_verified_at',
         'password',
         'is_admin',
+        'approved_at',
     ];
 
     /**
@@ -54,6 +55,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'approved_at' => 'datetime',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -77,15 +80,17 @@ class User extends Authenticatable
         $query = User::select(['users.*', 'messages.message as last_message', 'messages.created_at as last_message_date'])
             ->where('users.id', '!=', $userId)
             ->when(!$user->is_admin, function($query){
-                $query->whereNull('users.blocked_at');
+                $query->whereNull('users.blocked_at')
+                      ->whereNotNull('users.approved_at');
             })
             ->leftJoin('conversations', function ($join) use ($userId) {
-                $join->on('conversations.user_id1', '=', 'users.id')
-                    ->where('conversations.user_id2', '=', $userId)
-                    ->orWhere(function ($query) use ($userId) {
-                        $query->on('conversations.user_id2', '=', 'users.id')
-                            ->where('conversations.user_id1', '=', $userId);
-                    });
+                $join->on(function($q) use ($userId) {
+                    $q->on('conversations.user_id1', '=', 'users.id')
+                      ->where('conversations.user_id2', '=', $userId);
+                })->orOn(function($q) use ($userId) {
+                    $q->on('conversations.user_id2', '=', 'users.id')
+                      ->where('conversations.user_id1', '=', $userId);
+                });
             })
             ->leftJoin('messages', 'messages.id', '=', 'conversations.last_message_id')
             ->orderByRaw('COALESCE(users.blocked_at, \'1970-01-01\') DESC')
@@ -139,6 +144,7 @@ class User extends Authenticatable
             'last_message' => $this->last_message,
             'last_message_date' => $this->last_message_date,
             'avatar_url' => $this->avatar_url,
+            'approved_at' => $this->approved_at,
         ];
     }
     

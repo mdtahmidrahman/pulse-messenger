@@ -19,6 +19,7 @@ class TestUsersSeeder extends Seeder
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make('12345678'),
                 'is_admin' => true,
+                'approved_at' => Carbon::now(),
             ]
         );
 
@@ -30,6 +31,7 @@ class TestUsersSeeder extends Seeder
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make('12345678'),
                 'is_admin' => false,
+                'approved_at' => Carbon::now(),
             ]
         );
         
