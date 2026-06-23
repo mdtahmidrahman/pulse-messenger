@@ -1,11 +1,12 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import DangerButton from '@/Components/DangerButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage, router } from '@inertiajs/react';
 import { useRef, useState } from 'react';
-import { CameraIcon } from '@heroicons/react/24/solid';
+import { CameraIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -15,6 +16,7 @@ export default function UpdateProfileInformation({
     const user = usePage().props.auth.user;
     const fileInput = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [removingAvatar, setRemovingAvatar] = useState(false);
 
     const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
@@ -36,6 +38,21 @@ export default function UpdateProfileInformation({
         fileInput.current.click();
     };
 
+    const removeAvatar = () => {
+        if (confirm('Are you sure you want to remove your avatar?')) {
+            setRemovingAvatar(true);
+            router.delete(route('profile.avatar.destroy'), {
+                onSuccess: () => {
+                    setPreviewUrl(null);
+                    setRemovingAvatar(false);
+                },
+                onError: () => {
+                    setRemovingAvatar(false);
+                },
+            });
+        }
+    };
+
     const submit = (e) => {
         e.preventDefault();
         post(route('profile.update'), {
@@ -50,6 +67,8 @@ export default function UpdateProfileInformation({
         // Generate initials avatar
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&size=128`;
     };
+
+    const hasCustomAvatar = user.avatar && !previewUrl;
 
     return (
         <section className={className}>
@@ -87,15 +106,32 @@ export default function UpdateProfileInformation({
                             onChange={handleAvatarChange}
                         />
                     </div>
-                    <div>
-                        <button
-                            type="button"
-                            onClick={triggerFileInput}
-                            className="btn btn-sm btn-outline"
-                        >
-                            Change Avatar
-                        </button>
-                        <p className="text-xs text-base-content/60 mt-1">
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={triggerFileInput}
+                                className="btn btn-sm btn-outline"
+                            >
+                                Change Avatar
+                            </button>
+                            {hasCustomAvatar && (
+                                <button
+                                    type="button"
+                                    onClick={removeAvatar}
+                                    disabled={removingAvatar}
+                                    className="btn btn-sm btn-square bg-red-600 hover:bg-red-500 text-white border-none"
+                                    title="Remove Avatar"
+                                >
+                                    {removingAvatar ? (
+                                        <span className="loading loading-spinner loading-xs"></span>
+                                    ) : (
+                                        <TrashIcon className="w-4 h-4" />
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                        <p className="text-xs text-base-content/60">
                             JPG, PNG or GIF. Max 2MB.
                         </p>
                     </div>

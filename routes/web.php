@@ -1,9 +1,21 @@
 <?php
+use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// Test route to verify routing works
+Route::get('/broadcasting/test', function () {
+    error_log('=== BROADCAST TEST ROUTE HIT ===');
+    return response()->json(['status' => 'ok', 'user' => auth()->id()]);
+})->middleware(['web']);
+
+// Broadcasting auth route
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
+    ->middleware(['web', 'auth'])
+    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
 Route::middleware(['auth', 'verified'])->group(function()
 {
@@ -29,6 +41,7 @@ Route::middleware('auth')->group(function()
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 });
 
 

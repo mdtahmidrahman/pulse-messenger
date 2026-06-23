@@ -251,7 +251,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
+                        ' sm:hidden z-30 relative bg-slate-800'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">

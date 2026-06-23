@@ -110,8 +110,25 @@ class MessageController extends Controller
             $message->load('attachments');
             
             try {
+                error_log('=== BROADCASTING MESSAGE ===');
+                error_log('Message ID: ' . $message->id);
+                error_log('Sender: ' . $message->sender_id);
+                error_log('Receiver: ' . ($message->receiver_id ?? 'null'));
+                error_log('Group: ' . ($message->group_id ?? 'null'));
+                
+                // Debug: Log broadcast config
+                $config = config('broadcasting.connections.reverb');
+                error_log('Reverb Config: ' . json_encode($config['options'] ?? []));
+                error_log('Broadcast Driver: ' . config('broadcasting.default'));
+                
                 broadcast(new SocketMessage($message));
+                
+                error_log('=== BROADCAST CALL COMPLETED ===');
             } catch (\Exception $broadcastError) {
+                error_log('=== BROADCAST ERROR ===');
+                error_log('Error: ' . $broadcastError->getMessage());
+                error_log('File: ' . $broadcastError->getFile() . ':' . $broadcastError->getLine());
+                error_log('Trace: ' . $broadcastError->getTraceAsString());
                 \Log::error('Broadcast error: ' . $broadcastError->getMessage());
                 // Continue without broadcast - message still saved
             }
@@ -123,7 +140,7 @@ class MessageController extends Controller
             throw $e; // Re-throw to see the actual error
         }
     }
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     public function destroy(Message $message)
     {
         if($message->sender_id !== auth()->id())

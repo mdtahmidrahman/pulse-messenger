@@ -10,10 +10,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
+        // channels loaded in BroadcastServiceProvider to avoid auto-registering broadcast routes
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies (Render terminates SSL at load balancer)
+        $middleware->trustProxies(at: '*');
+
+        // Exclude broadcasting auth from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'broadcasting/auth',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
