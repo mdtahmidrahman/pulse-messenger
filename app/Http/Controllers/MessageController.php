@@ -92,7 +92,10 @@ class MessageController extends Controller
             $attachments = [];
             if($files){
                 foreach ($files as $file) {
-                    $uploadedFile = $file->storeOnCloudinary('attachments');
+                    $uploadedFile = cloudinary()->upload($file->getRealPath(), [
+                        'folder' => 'attachments',
+                        'resource_type' => 'auto'
+                    ]);
 
                     $model = [
                         'message_id' => $message->id,

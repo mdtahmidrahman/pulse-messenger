@@ -45,7 +45,9 @@ class ProfileController extends Controller
             }
             
             // Store new avatar
-            $uploadedFile = $request->file('avatar')->storeOnCloudinary('avatars');
+            $uploadedFile = cloudinary()->upload($request->file('avatar')->getRealPath(), [
+                'folder' => 'avatars'
+            ]);
             $validated['avatar'] = $uploadedFile->getSecurePath();
         }
 
