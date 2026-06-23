@@ -20,12 +20,13 @@ class MessageObserver
             'sender_id' => $message->sender_id,
         ];
 
-        // Iterate over the message's attachments and delete them from file system
+        // Iterate over the message's attachments and delete them from Cloudinary
         $message->attachments->each(function ($attachment) {
-            // Delete attachment file from file system saved on public disk
-            $dir = dirname($attachment->path);
-            Storage::disk('public')->deleteDirectory($dir);
-
+            try {
+                cloudinary()->destroy($attachment->path);
+            } catch (\Exception $e) {
+                \Log::error('Failed to delete attachment from Cloudinary: ' . $e->getMessage());
+            }
         });
 
         // delete all attachments related to the message from the database

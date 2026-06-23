@@ -1,8 +1,5 @@
 <?php
-<<<<<<< HEAD
 use App\Http\Controllers\AdminController;
-=======
->>>>>>> 5a1496a (Add custom broadcasting auth controller with logging)
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
@@ -12,12 +9,6 @@ use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\HandleInertiaRequests;
-
-// Test route to verify routing works
-Route::get('/broadcasting/test', function () {
-    error_log('=== BROADCAST TEST ROUTE HIT ===');
-    return response()->json(['status' => 'ok', 'user' => auth()->id()]);
-})->middleware(['web']);
 
 // Test route to verify routing works
 Route::get('/broadcasting/test', function () {
