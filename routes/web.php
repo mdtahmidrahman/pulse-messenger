@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
@@ -42,9 +43,13 @@ Route::middleware(['auth', 'verified'])->group(function()
     Route::get('/message/attachment/{attachment}', [MessageController::class, 'downloadAttachment'])->name('message.downloadAttachment');
 
     Route::middleware(['admin'])->group(function(){
+        Route::get('/admin/approvals', [AdminController::class, 'approvals'])->name('admin.approvals');
+        
         Route::post('/user', [UserController::class, 'store'])->name('user.store');
         Route::post('/user/change-role/{user}', [UserController::class, 'changeRole'])->name('user.changeRole');
         Route::post('/user/block-unblock/{user}', [UserController::class, 'blockUnblock'])->name('user.blockUnblock');
+        Route::post('/user/approve/{user}', [UserController::class, 'approve'])->name('user.approve');
+        Route::post('/user/decline/{user}', [UserController::class, 'decline'])->name('user.decline');
     });
 });
 

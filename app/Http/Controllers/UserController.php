@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserApproved;
+use App\Mail\UserDeclined;
 
 class UserController extends Controller
 {
@@ -16,12 +19,14 @@ class UserController extends Controller
             'is_admin' => 'boolean',
         ]);
         // Generate and assign a random password
-        // $rawPassword = Str::random(8);
-        $rawPassword = '12345678';
+        $rawPassword = Str::random(8);
         $data['password' ] = bcrypt($rawPassword);
         $data['email_verified_at']= now();
+        $data['approved_at'] = now();
 
-        User::create($data);
+        $user = User::create($data);
+
+        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\UserCreatedMail($user, $rawPassword));
 
         return redirect()->back();
     } 
@@ -48,5 +53,26 @@ class UserController extends Controller
         $user->save();
         
         return response()->json(['message' => $message]);
+    }
+
+    public function approve(User $user)
+    {
+        $user->approved_at = now();
+        $user->save();
+
+        Mail::to($user->email)->send(new UserApproved($user->name));
+
+        return response()->json(['message' => 'User has been approved.']);
+    }
+
+    public function decline(User $user)
+    {
+        $userName = $user->name;
+        $userEmail = $user->email;
+        $user->delete();
+
+        Mail::to($userEmail)->send(new UserDeclined($userName));
+
+        return response()->json(['message' => 'User request has been declined and removed.']);
     }
 }
