@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import TextInput from '@/Components/TextInput';
 import ConversationItem from '@/Components/App/ConversationItem';
 import { useEventBus } from '@/EventBus';
@@ -12,6 +12,33 @@ const ChatLayout = ({ children }) => {
     const [sortedConversations, setSortedConversations] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState({});
     const { on } = useEventBus();
+
+    // Sidebar Resizing Logic
+    const [sidebarWidth, setSidebarWidth] = useState(300); // default md width
+    const isResizing = useRef(false);
+
+    const startResizing = useCallback((e) => {
+        e.preventDefault();
+        isResizing.current = true;
+        
+        const onMouseMove = (moveEvent) => {
+            if (!isResizing.current) return;
+            const newWidth = moveEvent.clientX;
+            // min width 200px, max width 600px
+            if (newWidth >= 200 && newWidth <= 600) {
+                setSidebarWidth(newWidth);
+            }
+        };
+
+        const onMouseUp = () => {
+            isResizing.current = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    }, []);
 
     const isUserOnline = (userId) => !!onlineUsers[userId];
 
@@ -177,12 +204,20 @@ const ChatLayout = ({ children }) => {
             <div className="flex w-full h-full flex-1 overflow-hidden">
                 {/* Sidebar - Conversation List */}
                 <div
+                    style={typeof window !== 'undefined' && window.innerWidth >= 640 ? { width: `${sidebarWidth}px`, flexShrink: 0 } : {}}
                     className={`
                         fixed top-16 left-0 right-0 bottom-0 z-20 flex flex-col overflow-hidden bg-slate-800 transition-transform duration-300 ease-in-out
-                        sm:relative sm:top-0 sm:z-auto sm:w-[220px] md:w-[300px] sm:translate-x-0
+                        sm:relative sm:top-0 sm:z-auto sm:translate-x-0
                         ${selectedConversation ? '-translate-x-full' : 'translate-x-0'}
                     `}
                 >
+                    {/* Drag Handle (Visible only on sm+ screens) */}
+                    <div
+                        onMouseDown={startResizing}
+                        className="hidden sm:block absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-emerald-500 hover:w-1.5 transition-all z-30"
+                        title="Drag to resize sidebar"
+                    />
+
                     <div className='flex items-center justify-between py-2 px-3 text-xl'>
                         My Conversations
 

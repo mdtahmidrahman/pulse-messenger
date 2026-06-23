@@ -15,13 +15,11 @@ export const formatMessageDateLong = (date) => {
                 minute: '2-digit',
             })
         );
-    } else if (inputDate.getFullYear() === now.getFullYear()) {
-        return inputDate.toLocaleDateString([], {
-            day: '2-digit',
-            month: 'short',
-        });
     } else {
-        return inputDate.toLocaleDateString();
+        const day = inputDate.getDate().toString().padStart(2, '0');
+        const month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = inputDate.getFullYear();
+        return `${day}-${month}-${year}`;
     }
 };
 
@@ -36,13 +34,11 @@ export const formatMessageDateShort = (date) => {
         });
     } else if (isYesterday(inputDate)) {
         return 'Yesterday';
-    } else if (inputDate.getFullYear() === now.getFullYear()) {
-        return inputDate.toLocaleDateString([], {
-            day: '2-digit',
-            month: 'short',
-        });
     } else {
-        return inputDate.toLocaleDateString();
+        const day = inputDate.getDate().toString().padStart(2, '0');
+        const month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = inputDate.getFullYear();
+        return `${day}-${month}-${year}`;
     }
 };
 

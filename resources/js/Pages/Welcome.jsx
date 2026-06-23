@@ -38,7 +38,7 @@ export default function Welcome({ canLogin, canRegister, isLoggedIn }) {
                                             href={route('register')} 
                                             className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white transition-all rounded-xl shadow-sm bg-[#1fb6c0] hover:bg-[#1898a0]"
                                         >
-                                            Sign up
+                                            Try Live Demo
                                         </Link>
                                     )}
                                 </>
@@ -52,11 +52,11 @@ export default function Welcome({ canLogin, canRegister, isLoggedIn }) {
                     <div className="relative pt-20 pb-24 sm:pt-28 sm:pb-32">
                         <div className="mx-auto max-w-7xl px-6 lg:px-8 text-center">
                             <h1 className="max-w-4xl mx-auto text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6 leading-tight">
-                                Reliable communication for <br className="hidden sm:block" />
+                                Self-hosted communication for <br className="hidden sm:block" />
                                 <span style={{ color: primaryColor }}>modern teams.</span>
                             </h1>
                             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-400">
-                                Connect instantly with a real-time messaging platform designed to integrate seamlessly into your workflow. Built for speed, security, and simplicity.
+                                Take back control of your data. Pulse Messenger is a blazing fast, self-hosted communication platform built strictly for privacy, speed, and technical teams.
                             </p>
                             <div className="mt-10 flex items-center justify-center gap-x-4">
                                 {isLoggedIn ? (
@@ -72,13 +72,13 @@ export default function Welcome({ canLogin, canRegister, isLoggedIn }) {
                                             href={route('register')} 
                                             className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-white transition-all rounded-xl shadow-sm bg-[#1fb6c0] hover:bg-[#1898a0]"
                                         >
-                                            Get Started
+                                            Try Live Demo
                                         </Link>
                                         <Link 
                                             href={route('login')} 
                                             className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors rounded-xl shadow-sm"
                                         >
-                                            Sign In
+                                            Login to Demo
                                         </Link>
                                     </>
                                 )}
