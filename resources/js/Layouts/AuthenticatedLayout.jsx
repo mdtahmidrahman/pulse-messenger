@@ -13,7 +13,7 @@ import { UserPlusIcon } from '@heroicons/react/24/solid';
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
-    const conversations = page.props.conversations;
+    const conversations = page.props.conversations || [];
     const selectedConversation = page.props.selectedConversation;
     const { emit, on } = useEventBus();
     const { showToast } = useToast();
@@ -255,7 +255,18 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
+                        <div className="-me-2 flex items-center sm:hidden gap-2">
+                            {/* Add User Button for Mobile */}
+                            {!!user.is_admin && (
+                                <button
+                                    onClick={() => setShowUserModal(true)}
+                                    className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                    title="Add New User"
+                                >
+                                    <UserPlusIcon className="w-5 h-5" />
+                                </button>
+                            )}
+
                             <button
                                 onClick={() =>
                                     setShowingNavigationDropdown(
@@ -301,7 +312,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden z-30 relative bg-slate-800'
+                        ' sm:hidden z-30 relative bg-base-200 shadow-inner'
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
@@ -311,6 +322,20 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Home
                         </ResponsiveNavLink>
+                        {!!user.is_admin && (
+                            <ResponsiveNavLink
+                                href={route('admin.approvals')}
+                                active={route().current('admin.approvals')}
+                                className="flex items-center gap-2"
+                            >
+                                Pending Approvals
+                                {pendingUsers.length > 0 && (
+                                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                        {pendingUsers.length}
+                                    </span>
+                                )}
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-base-200 pb-1 pt-4">

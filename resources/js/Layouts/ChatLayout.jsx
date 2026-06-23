@@ -16,6 +16,14 @@ const ChatLayout = ({ children }) => {
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(300); // default md width
     const isResizing = useRef(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const startResizing = useCallback((e) => {
         e.preventDefault();
@@ -204,11 +212,10 @@ const ChatLayout = ({ children }) => {
             <div className="flex w-full h-full flex-1 overflow-hidden">
                 {/* Sidebar - Conversation List */}
                 <div
-                    style={typeof window !== 'undefined' && window.innerWidth >= 640 ? { width: `${sidebarWidth}px`, flexShrink: 0 } : {}}
+                    style={isMobile ? { width: '100%', flexShrink: 0 } : { width: `${sidebarWidth}px`, flexShrink: 0 }}
                     className={`
-                        fixed top-16 left-0 right-0 bottom-0 z-20 flex flex-col overflow-hidden bg-slate-800 transition-transform duration-300 ease-in-out
-                        sm:relative sm:top-0 sm:z-auto sm:translate-x-0
-                        ${selectedConversation ? '-translate-x-full' : 'translate-x-0'}
+                        transition-all duration-300 ease-in-out flex flex-col overflow-hidden bg-slate-800
+                        ${selectedConversation ? '-ml-[100%] sm:ml-0' : ''}
                     `}
                 >
                     {/* Drag Handle (Visible only on sm+ screens) */}
@@ -220,18 +227,6 @@ const ChatLayout = ({ children }) => {
 
                     <div className='flex items-center justify-between py-2 px-3 text-xl'>
                         My Conversations
-
-                        <div className='tooltip tooltip-left'
-                            data-tip="Create New Group">
-                        </div>
-
-                        <button className='text-gray-400 hover:text-gray-200'>
-                            <svg className="w-4 h-4 inline-block ml-2"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                                <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
-                            </svg>
-                        </button>
                     </div>
                     <div className='p-3'>
                         <TextInput onKeyUp={onSearch}
