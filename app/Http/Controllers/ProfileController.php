@@ -37,12 +37,16 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
             if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
+                try {
+                    cloudinary()->destroy($user->avatar);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to delete old avatar from Cloudinary: ' . $e->getMessage());
+                }
             }
             
             // Store new avatar
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $path;
+            $uploadedFile = $request->file('avatar')->storeOnCloudinary('avatars');
+            $validated['avatar'] = $uploadedFile->getSecurePath();
         }
 
         $user->fill($validated);
@@ -64,7 +68,11 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+            try {
+                cloudinary()->destroy($user->avatar);
+            } catch (\Exception $e) {
+                \Log::error('Failed to delete avatar from Cloudinary: ' . $e->getMessage());
+            }
             $user->avatar = null;
             $user->save();
         }
