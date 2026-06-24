@@ -33,6 +33,16 @@ Route::middleware(['auth', 'verified'])->group(function()
 {
     Route::get('/chat', [HomeController::class, 'home'])->name('home');
 
+Route::get('/debug-mail', function () {
+    return response()->json([
+        'mailer' => config('mail.default'),
+        'host' => config('mail.mailers.smtp.host'),
+        'port' => config('mail.mailers.smtp.port'),
+        'username' => config('mail.mailers.smtp.username'),
+        'password_length' => strlen(config('mail.mailers.smtp.password')),
+    ]);
+});
+
     Route::get('/user/{user}', [MessageController::class, 'byuser'])->name('chat.user');
     Route::get('/group/{group}', [MessageController::class, 'byGroup'])->name('chat.group');
 
