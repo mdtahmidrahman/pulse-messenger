@@ -47,6 +47,18 @@ Route::get('/debug-mail', function () {
     ]);
 });
 
+Route::get('/debug-mail-send', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('This is a test email sent synchronously from Render to verify SMTP settings!', function ($message) {
+            $message->to(config('mail.mailers.smtp.username'))
+                    ->subject('SMTP Verification Test');
+        });
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Email sent to ' . config('mail.mailers.smtp.username')]);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'ERROR', 'error' => $e->getMessage()]);
+    }
+});
+
     Route::get('/user/{user}', [MessageController::class, 'byuser'])->name('chat.user');
     Route::get('/group/{group}', [MessageController::class, 'byGroup'])->name('chat.group');
 
