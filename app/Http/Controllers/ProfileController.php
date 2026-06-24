@@ -71,8 +71,20 @@ class ProfileController extends Controller
 
         if ($user->avatar) {
             try {
-                cloudinary()->destroy($user->avatar);
-            } catch (\Exception $e) {
+                // Extract public ID from Cloudinary URL (e.g., avatars/filename)
+                $urlParts = explode('/upload/', $user->avatar);
+                if (count($urlParts) > 1) {
+                    $pathParts = explode('/', $urlParts[1]);
+                    // Remove version number (v1234) if present
+                    if (preg_match('/^v\d+$/', $pathParts[0])) {
+                        array_shift($pathParts);
+                    }
+                    $publicIdWithExt = implode('/', $pathParts);
+                    $publicId = pathinfo($publicIdWithExt, PATHINFO_FILENAME);
+                    
+                    cloudinary()->uploadApi()->destroy($publicId);
+                }
+            } catch (\Throwable $e) {
                 \Log::error('Failed to delete avatar from Cloudinary: ' . $e->getMessage());
             }
             $user->avatar = null;
