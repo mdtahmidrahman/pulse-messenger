@@ -38,17 +38,27 @@ class ProfileController extends Controller
             // Delete old avatar if exists
             if ($user->avatar) {
                 try {
-                    cloudinary()->destroy($user->avatar);
+                    $urlParts = explode('/upload/', $user->avatar);
+                    if (count($urlParts) > 1) {
+                        $pathParts = explode('/', $urlParts[1]);
+                        if (preg_match('/^v\d+$/', $pathParts[0])) {
+                            array_shift($pathParts);
+                        }
+                        $publicIdWithExt = implode('/', $pathParts);
+                        $publicId = pathinfo($publicIdWithExt, PATHINFO_FILENAME);
+                        
+                        cloudinary()->uploadApi()->destroy($publicId);
+                    }
                 } catch (\Exception $e) {
                     \Log::error('Failed to delete old avatar from Cloudinary: ' . $e->getMessage());
                 }
             }
             
             // Store new avatar
-            $uploadedFile = cloudinary()->upload($request->file('avatar')->getRealPath(), [
+            $uploadedFile = cloudinary()->uploadApi()->upload($request->file('avatar')->getRealPath(), [
                 'folder' => 'avatars'
             ]);
-            $validated['avatar'] = $uploadedFile->getSecurePath();
+            $validated['avatar'] = $uploadedFile['secure_url'];
         }
 
         $user->fill($validated);

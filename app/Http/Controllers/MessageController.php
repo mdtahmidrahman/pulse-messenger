@@ -88,7 +88,7 @@ class MessageController extends Controller
             $attachments = [];
             if($files){
                 foreach ($files as $file) {
-                    $uploadedFile = cloudinary()->upload($file->getRealPath(), [
+                    $uploadedFile = cloudinary()->uploadApi()->upload($file->getRealPath(), [
                         'folder' => 'attachments',
                         'resource_type' => 'auto'
                     ]);
@@ -96,7 +96,7 @@ class MessageController extends Controller
                     $model = [
                         'message_id' => $message->id,
                         'name' => $file->getClientOriginalName(),
-                        'path' => $uploadedFile->getSecurePath(),
+                        'path' => $uploadedFile['secure_url'],
                         'mime' => $file->getClientMimeType(),
                         'size' => $file->getSize(),
                     ];
