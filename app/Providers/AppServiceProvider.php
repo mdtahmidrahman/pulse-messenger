@@ -44,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
             \URL::forceScheme('https');
         }
 
+        // Dynamically register the brevo mailer config in case configuration is cached on the server
+        config(['mail.mailers.brevo' => ['transport' => 'brevo']]);
+
         // Register custom Brevo API Mail Transport to bypass shared hosting SMTP blocks
         $this->app->make(\Illuminate\Mail\MailManager::class)->extend('brevo', function () {
             return new class(new \GuzzleHttp\Client()) extends \Symfony\Component\Mailer\Transport\AbstractTransport {
