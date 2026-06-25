@@ -30,7 +30,9 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 
 ## Live Demo
 
-**Live Link:** [https://pulse-messenger-7xex.onrender.com](https://pulse-messenger-7xex.onrender.com)
+**Live Link:** 
+[https://pulse-messenger.infinityfreeapp.com](https://pulse-messenger.infinityfreeapp.com),
+[https://pulse-messenger-7xex.onrender.com](https://pulse-messenger-7xex.onrender.com)
 
 ### How Sign-up & Login Works
 
