@@ -39,7 +39,12 @@ return [
         ],
 
         'public' => [
-            'driver' => (env('PUBLIC_FILESYSTEM_DRIVER', 'local') === 'cloudinary' && env('CLOUDINARY_URL')) ? 'cloudinary' : 'local',
+            'driver' => (
+                env('PUBLIC_FILESYSTEM_DRIVER', 'local') === 'cloudinary' &&
+                env('CLOUDINARY_URL') &&
+                str_contains(env('CLOUDINARY_URL'), '@') &&
+                !str_contains(env('CLOUDINARY_URL'), 'your_api_key')
+            ) ? 'cloudinary' : 'local',
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
