@@ -62,7 +62,7 @@ export default function UpdateProfileInformation({
 
     const getAvatarSrc = () => {
         if (previewUrl) return previewUrl;
-        if (user.avatar) return user.avatar.startsWith('/') ? user.avatar : `/storage/${user.avatar}`;
+        if (user.avatar) return (user.avatar.startsWith('/') || user.avatar.startsWith('http')) ? user.avatar : `/storage/${user.avatar}`;
         // Generate initials avatar
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&size=128`;
     };
