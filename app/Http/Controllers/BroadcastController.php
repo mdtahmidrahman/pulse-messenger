@@ -32,9 +32,14 @@ class BroadcastController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        // Generate the auth signature manually
-        $appKey = config('reverb.apps.apps.0.key');
-        $appSecret = config('reverb.apps.apps.0.secret');
+        // Generate the auth signature manually using the active broadcaster's keys
+        if (config('broadcasting.default') === 'pusher') {
+            $appKey = config('broadcasting.connections.pusher.key');
+            $appSecret = config('broadcasting.connections.pusher.secret');
+        } else {
+            $appKey = config('reverb.apps.apps.0.key');
+            $appSecret = config('reverb.apps.apps.0.secret');
+        }
         
         // For presence channels, we need to include channel_data
         $isPresenceChannel = str_starts_with($channelName, 'presence-');
