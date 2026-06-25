@@ -60,10 +60,18 @@ class AppServiceProvider extends ServiceProvider
                     
                     $to = [];
                     foreach ($email->getTo() as $recipient) {
-                        $to[] = ['email' => $recipient->getAddress(), 'name' => $recipient->getName()];
+                        $name = $recipient->getName();
+                        if (empty($name)) {
+                            $name = explode('@', $recipient->getAddress())[0];
+                        }
+                        $to[] = ['email' => $recipient->getAddress(), 'name' => $name];
                     }
 
-                    $from = ['email' => $email->getFrom()[0]->getAddress(), 'name' => $email->getFrom()[0]->getName()];
+                    $fromName = $email->getFrom()[0]->getName();
+                    if (empty($fromName)) {
+                        $fromName = config('mail.from.name', 'Pulse');
+                    }
+                    $from = ['email' => $email->getFrom()[0]->getAddress(), 'name' => $fromName];
                     
                     $payload = [
                         'sender' => $from,
