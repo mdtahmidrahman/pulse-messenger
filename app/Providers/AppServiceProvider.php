@@ -39,5 +39,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(NotificationFailed::class, function (NotificationFailed $event) {
             Log::error('WebPush NotificationFailed event payload:', json_decode(json_encode($event->report), true));
         });
+
+        if (config('app.env') === 'production') {
+            \URL::forceScheme('https');
+        }
     }
 }
