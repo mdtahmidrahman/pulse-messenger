@@ -95,11 +95,15 @@ Route::middleware('auth')->group(function()
 
 require __DIR__.'/auth.php';
 
-// Fallback storage route for hosts that disable symlink() (like InfinityFree)
 Route::get('storage/{path}', function ($path) {
+    // Add debug header to verify Laravel is catching the request
+    header('X-Storage-Fallback: Active');
+    
     $disk = \Illuminate\Support\Facades\Storage::disk('public');
     if (!$disk->exists($path)) {
-        abort(404);
+        // Log the search path for debugging
+        \Log::warning("Storage fallback: File not found: " . $path . " (full path: " . $disk->path($path) . ")");
+        abort(404, "File not found on public disk: " . $path);
     }
     
     return response()->file($disk->path($path));
