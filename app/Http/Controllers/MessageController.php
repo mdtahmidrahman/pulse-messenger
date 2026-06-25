@@ -93,11 +93,18 @@ class MessageController extends Controller
             if($files){
                 foreach ($files as $file) {
                     $path = $file->store('attachments', 'public');
+                    $url = Storage::disk('public')->url($path);
+                    
+                    if (str_starts_with($url, 'http') && !str_contains($url, env('APP_URL'))) {
+                        $dbPath = $url;
+                    } else {
+                        $dbPath = '/storage/' . $path;
+                    }
 
                     $model = [
                         'message_id' => $message->id,
                         'name' => $file->getClientOriginalName(),
-                        'path' => str_starts_with($path, 'http') ? $path : '/storage/' . $path,
+                        'path' => $dbPath,
                         'mime' => $file->getClientMimeType(),
                         'size' => $file->getSize(),
                     ];

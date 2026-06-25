@@ -53,7 +53,13 @@ class ProfileController extends Controller
             
             // Store new avatar
             $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = str_starts_with($path, 'http') ? $path : '/storage/' . $path;
+            $url = Storage::disk('public')->url($path);
+            
+            if (str_starts_with($url, 'http') && !str_contains($url, env('APP_URL'))) {
+                $validated['avatar'] = $url;
+            } else {
+                $validated['avatar'] = '/storage/' . $path;
+            }
         }
 
         $user->fill($validated);
