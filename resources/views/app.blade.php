@@ -16,11 +16,18 @@
 
         <!-- Scripts -->
         <script>
-            window.ReverbConfig = {!! json_encode([
-                'key' => env('REVERB_APP_KEY'),
-                'host' => env('VITE_REVERB_HOST', parse_url(env('APP_URL'), PHP_URL_HOST)),
-                'port' => env('VITE_REVERB_PORT', 443),
-                'scheme' => env('VITE_REVERB_SCHEME', 'https'),
+            window.BroadcastConfig = {!! json_encode([
+                'connection' => env('BROADCAST_CONNECTION', 'reverb'),
+                'reverb' => [
+                    'key' => env('REVERB_APP_KEY'),
+                    'host' => env('VITE_REVERB_HOST', parse_url(env('APP_URL'), PHP_URL_HOST)),
+                    'port' => env('VITE_REVERB_PORT', 443),
+                    'scheme' => env('VITE_REVERB_SCHEME', 'https'),
+                ],
+                'pusher' => [
+                    'key' => env('PUSHER_APP_KEY'),
+                    'cluster' => env('PUSHER_APP_CLUSTER', 'mt1'),
+                ]
             ]) !!};
         </script>
         @routes
