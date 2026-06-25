@@ -5,9 +5,9 @@ header('Content-Type: text/plain');
 
 echo "=== STORAGE DIAGNOSTICS ===\n\n";
 
-$basePath = realpath(__DIR__ . '/../pulse-core');
+$basePath = realpath(__DIR__ . '/pulse-core');
 if (!$basePath) {
-    echo "ERROR: Could not resolve base path to pulse-core.\n";
+    echo "ERROR: Could not resolve base path to pulse-core (tried " . __DIR__ . "/pulse-core).\n";
     exit;
 }
 
