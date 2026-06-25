@@ -56,3 +56,50 @@ function listDirectory($dir, $prefix = '') {
         }
     }
 }
+
+// Boot Laravel to test configurations
+echo "\n=== LARAVEL CONFIGURATION CHECK ===\n";
+try {
+    require $basePath . '/vendor/autoload.php';
+    
+    // Create and bootstrap the application
+    $app = require_once $basePath . '/bootstrap/app.php';
+    
+    // We need to resolve the console kernel to bootstrap the application components
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+
+    echo "Laravel Version: " . app()->version() . "\n";
+    echo "Filesystem Default Disk: " . config('filesystems.default') . "\n";
+    
+    $publicDisk = config('filesystems.disks.public');
+    echo "Public Disk Config:\n";
+    echo " - Driver: " . ($publicDisk['driver'] ?? 'N/A') . "\n";
+    echo " - Root: " . ($publicDisk['root'] ?? 'N/A') . "\n";
+    echo " - URL: " . ($publicDisk['url'] ?? 'N/A') . "\n";
+    
+    $cloudinaryDisk = config('filesystems.disks.cloudinary');
+    echo "Cloudinary Disk Config:\n";
+    echo " - Driver: " . ($cloudinaryDisk['driver'] ?? 'N/A') . "\n";
+    
+    $cloudinaryUrl = $cloudinaryDisk['url'] ?? null;
+    if ($cloudinaryUrl) {
+        $maskedUrl = substr($cloudinaryUrl, 0, 20) . '...' . substr($cloudinaryUrl, -10);
+        echo " - URL: " . $maskedUrl . "\n";
+    } else {
+        echo " - URL: NOT SET\n";
+    }
+    
+    echo "Raw ENV CLOUDINARY_URL: ";
+    $rawEnv = env('CLOUDINARY_URL');
+    if ($rawEnv) {
+        echo substr($rawEnv, 0, 20) . '...' . substr($rawEnv, -10) . "\n";
+    } else {
+        echo "NOT SET\n";
+    }
+
+} catch (\Exception $e) {
+    echo "ERROR Booting Laravel / Initializing Config: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . " Line: " . $e->getLine() . "\n";
+}
+
