@@ -37,15 +37,23 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
             if ($user->avatar) {
-                $oldPath = str_replace('/storage/', '', $user->avatar);
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->delete($oldPath);
+                if (str_starts_with($user->avatar, 'http')) {
+                    try {
+                        cloudinary()->destroy($user->avatar);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to delete old avatar from Cloudinary: ' . $e->getMessage());
+                    }
+                } else {
+                    $oldPath = str_replace('/storage/', '', $user->avatar);
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
                 }
             }
             
-            // Store new avatar locally
+            // Store new avatar
             $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = '/storage/' . $path;
+            $validated['avatar'] = str_starts_with($path, 'http') ? $path : '/storage/' . $path;
         }
 
         $user->fill($validated);
@@ -67,9 +75,17 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->avatar) {
-            $oldPath = str_replace('/storage/', '', $user->avatar);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
+            if (str_starts_with($user->avatar, 'http')) {
+                try {
+                    cloudinary()->destroy($user->avatar);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to delete avatar from Cloudinary: ' . $e->getMessage());
+                }
+            } else {
+                $oldPath = str_replace('/storage/', '', $user->avatar);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
             }
             $user->avatar = null;
             $user->save();

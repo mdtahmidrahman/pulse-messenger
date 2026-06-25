@@ -97,7 +97,7 @@ class MessageController extends Controller
                     $model = [
                         'message_id' => $message->id,
                         'name' => $file->getClientOriginalName(),
-                        'path' => '/storage/' . $path,
+                        'path' => str_starts_with($path, 'http') ? $path : '/storage/' . $path,
                         'mime' => $file->getClientMimeType(),
                         'size' => $file->getSize(),
                     ];
