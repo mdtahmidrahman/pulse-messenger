@@ -94,3 +94,18 @@ Route::middleware('auth')->group(function()
 
 
 require __DIR__.'/auth.php';
+
+// Fallback storage route for hosts that disable symlink() (like InfinityFree)
+Route::get('storage/{path}', function ($path) {
+    if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    
+    $file = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+    $type = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($path);
+    
+    $response = \Illuminate\Support\Facades\Response::make($file, 200);
+    $response->header("Content-Type", $type);
+    
+    return $response;
+})->where('path', '.*');

@@ -92,15 +92,12 @@ class MessageController extends Controller
             $attachments = [];
             if($files){
                 foreach ($files as $file) {
-                    $uploadedFile = cloudinary()->uploadApi()->upload($file->getRealPath(), [
-                        'folder' => 'attachments',
-                        'resource_type' => 'auto'
-                    ]);
+                    $path = $file->store('attachments', 'public');
 
                     $model = [
                         'message_id' => $message->id,
                         'name' => $file->getClientOriginalName(),
-                        'path' => $uploadedFile['secure_url'],
+                        'path' => '/storage/' . $path,
                         'mime' => $file->getClientMimeType(),
                         'size' => $file->getSize(),
                     ];
@@ -179,6 +176,10 @@ class MessageController extends Controller
 
     public function downloadAttachment(MessageAttachment $attachment)
     {
+        $path = str_replace('/storage/', '', $attachment->path);
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->download($path, $attachment->name);
+        }
         return redirect($attachment->path);
     }
 
