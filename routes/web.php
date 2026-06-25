@@ -35,7 +35,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function()
 {
-    Route::get('/chat', [HomeController::class, 'home'])->name('home');
+    Route::get('/messages', [HomeController::class, 'home'])->name('home');
 
 Route::get('/debug-mail', function () {
     return response()->json([
