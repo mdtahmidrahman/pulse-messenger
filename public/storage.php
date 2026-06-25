@@ -8,6 +8,12 @@ $path = $_GET['path'] ?? '';
 $path = str_replace(['..', '\\'], ['', '/'], $path);
 $path = ltrim($path, '/');
 
+// Strip out any redundant "storage/" prefix in the path
+if (str_starts_with($path, 'storage/')) {
+    $path = substr($path, 8);
+}
+$path = ltrim($path, '/');
+
 // Determine base storage path dynamically
 if (is_dir(__DIR__ . '/pulse-core')) {
     // Shared hosting structure: core is inside htdocs/pulse-core/
