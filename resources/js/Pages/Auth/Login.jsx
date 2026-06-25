@@ -4,22 +4,21 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { errors: pageErrors } = usePage().props;
+    const errors = pageErrors || {};
+
+    const { data, setData, remember } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
-    };
+    const csrfToken = typeof document !== 'undefined'
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        : '';
 
     return (
         <GuestLayout>
@@ -31,7 +30,9 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             )}
 
-            <form onSubmit={submit}>
+            <form method="POST" action={route('login')}>
+                <input type="hidden" name="_token" value={csrfToken} />
+
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
 
@@ -90,7 +91,7 @@ export default function Login({ status, canResetPassword }) {
                         </Link>
                     )}
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <PrimaryButton className="ms-4">
                         Log in
                     </PrimaryButton>
                 </div>
