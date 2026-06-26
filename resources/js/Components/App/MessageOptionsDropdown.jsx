@@ -33,7 +33,7 @@ const MessageOptionsDropdown = ({ message, onDelete, onReply, onForward, onStart
 
     return (
         <Menu as="div" className="relative inline-flex items-center">
-            <Menu.Button className="p-1 rounded-full hover:bg-black/20 transition-colors opacity-0 group-hover:opacity-100">
+            <Menu.Button className="p-1 rounded-full hover:bg-black/20 transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                 <EllipsisVerticalIcon className="w-4 h-4 text-gray-400" />
             </Menu.Button>
 
