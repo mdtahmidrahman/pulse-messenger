@@ -23,6 +23,10 @@ class MessageResource extends JsonResource
             'sender' => new UserResource($this->whenLoaded('sender')),
             'group_id' => $this->group_id,
             'attachments' => MessageAttachmentResource::collection($this->whenLoaded('attachments')),
+            'parent_id' => $this->parent_id,
+            'parent' => new MessageResource($this->whenLoaded('parent')),
+            'is_edited' => (bool) $this->is_edited,
+            'is_forwarded' => (bool) $this->is_forwarded,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

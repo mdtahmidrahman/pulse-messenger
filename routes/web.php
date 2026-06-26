@@ -43,6 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function()
     Route::delete('/message/{message}', [MessageController::class, 'destroy'])->name('message.destroy');
     Route::get('/load-older/{message}', [MessageController::class, 'loadOlder'])->name('message.loadOlder');
     Route::get('/message/attachment/{attachment}', [MessageController::class, 'downloadAttachment'])->name('message.downloadAttachment');
+    Route::patch('/message/{message}', [MessageController::class, 'update'])->name('message.update');
+    Route::post('/message/forward', [MessageController::class, 'forward'])->name('message.forward');
 
     Route::middleware(['admin'])->group(function(){
         Route::get('/admin/approvals', [AdminController::class, 'approvals'])->name('admin.approvals');

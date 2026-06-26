@@ -224,6 +224,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             }`,
                     });
                 })
+                .listen('SocketMessageUpdated', (e) => {
+                    console.log('SocketMessageUpdated', e);
+                    emit('message.updated', e.message);
+                })
                 .listen('SocketMessageDeleted', (e) => {
                     console.log('SocketMessageDeleted', e);
                     emit('message.deleted', e.message);

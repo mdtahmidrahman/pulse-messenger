@@ -463,9 +463,9 @@ pulse-messenger/
   - [ ] Group admin/moderator roles
 
 - [ ] **Message Enhancements**
-  - [ ] Edit sent messages
-  - [ ] Reply to specific messages
-  - [ ] Forward messages to other chats
+  - [x] Edit sent messages
+  - [x] Reply to specific messages
+  - [x] Forward messages to other chats
   - [ ] Message read receipts
   - [ ] Typing indicators
 

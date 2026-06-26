@@ -7,9 +7,12 @@ import MessageItem from '@/Components/App/MessageItem';
 import MessageInput from '@/Components/App/MessageInput';
 import ImageViewer from '@/Components/App/ImageViewer';
 import { useEventBus } from '@/EventBus';
+import ForwardMessageModal from '@/Components/App/ForwardMessageModal';
 
 function Home({ selectedConversation = null, messages = null }) {
     const [localMessages, setLocalMessages] = useState([]);
+    const [replyingMessage, setReplyingMessage] = useState(null);
+    const [forwardingMessage, setForwardingMessage] = useState(null);
     const [noMoreMessages, setNoMoreMessages] = useState(false);
     const [fetchingOlderMessages, setFetchingOlderMessages] = useState(false);
     const messagesContainerRef = useRef(null);
@@ -113,6 +116,8 @@ function Home({ selectedConversation = null, messages = null }) {
     }, [noMoreMessages, localMessages]);
 
     useEffect(() => {
+        setReplyingMessage(null);
+        setForwardingMessage(null);
         setTimeout(() => {
             if (messagesContainerRef.current) {
                 messagesContainerRef.current.scrollTop =
@@ -184,6 +189,20 @@ function Home({ selectedConversation = null, messages = null }) {
         };
     }, [on]);
 
+    // Listen for message updates from other users (real-time sync)
+    useEffect(() => {
+        const offUpdated = on('message.updated', (updatedMessage) => {
+            console.log('Message updated by another user:', updatedMessage);
+            setLocalMessages((prev) =>
+                prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
+            );
+        });
+
+        return () => {
+            offUpdated();
+        };
+    }, [on]);
+
     useEffect(() => {
         if (messages) {
             setLocalMessages(messages.data.reverse());
@@ -238,12 +257,23 @@ function Home({ selectedConversation = null, messages = null }) {
                                         message={msg}
                                         openImageViewer={openImageViewer}
                                         onDelete={handleMessageDelete}
+                                        onReply={setReplyingMessage}
+                                        onForward={setForwardingMessage}
+                                        onUpdate={(updatedMsg) => {
+                                            setLocalMessages((prev) =>
+                                                prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m))
+                                            );
+                                        }}
                                     />
                                 ))}
                             </div>
                         )}
                     </div>
-                    <MessageInput conversation={selectedConversation} />
+                    <MessageInput
+                        conversation={selectedConversation}
+                        replyingMessage={replyingMessage}
+                        setReplyingMessage={setReplyingMessage}
+                    />
                 </div>
             )}
 
@@ -253,6 +283,14 @@ function Home({ selectedConversation = null, messages = null }) {
                     images={viewerImages}
                     initialIndex={viewerIndex}
                     onClose={closeImageViewer}
+                />
+            )}
+
+            {/* Forward Message Modal */}
+            {forwardingMessage && (
+                <ForwardMessageModal
+                    message={forwardingMessage}
+                    onClose={() => setForwardingMessage(null)}
                 />
             )}
         </>

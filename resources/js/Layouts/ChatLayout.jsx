@@ -115,6 +115,55 @@ const ChatLayout = ({ children }) => {
         };
     }, [on]);
 
+    // Listen for message updates and update sidebar last message
+    useEffect(() => {
+        const offMessageUpdated = on('message.updated', (message) => {
+            console.log('ChatLayout received message updated:', message);
+            setLocalConversations((prevConversations) => {
+                return prevConversations.map((conversation) => {
+                    let isMatch = false;
+
+                    if (message.group_id) {
+                        isMatch = conversation.is_group && parseInt(conversation.id) === parseInt(message.group_id);
+                    } else {
+                        isMatch = !conversation.is_group && (
+                            parseInt(conversation.id) === parseInt(message.sender_id) ||
+                            parseInt(conversation.id) === parseInt(message.receiver_id)
+                        );
+                    }
+
+                    if (isMatch) {
+                        let lastMessageText = message.message;
+                        if (!lastMessageText && message.attachments?.length > 0) {
+                            const hasImage = message.attachments.some(a => a.mime?.startsWith('image/'));
+                            const hasVideo = message.attachments.some(a => a.mime?.startsWith('video/'));
+                            if (hasImage) lastMessageText = 'Photo';
+                            else if (hasVideo) lastMessageText = 'Video';
+                            else lastMessageText = 'Attachment';
+                            if (message.attachments.length > 1) {
+                                lastMessageText += ` (${message.attachments.length})`;
+                            }
+                        }
+
+                        return {
+                            ...conversation,
+                            last_message: lastMessageText,
+                            last_message_sender: conversation.is_group && message.sender?.name
+                                ? message.sender.name.split(' ')[0]
+                                : null,
+                            last_message_sender_id: message.sender_id,
+                        };
+                    }
+                    return conversation;
+                });
+            });
+        });
+
+        return () => {
+            offMessageUpdated();
+        };
+    }, [on]);
+
     // Listen for message deletions and update sidebar
     useEffect(() => {
         const offMessageDeleted = on('message.deleted', (deletedMessage) => {

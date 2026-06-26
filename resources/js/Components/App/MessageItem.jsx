@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import React from 'react';
+import React, { useState } from 'react';
 import UserAvatar from '@/Components/App/UserAvatar';
 import MessageOptionsDropdown from '@/Components/App/MessageOptionsDropdown';
 import { formatMessageDateLong } from '@/helpers';
@@ -10,9 +10,12 @@ import {
     ArrowDownTrayIcon,
     DocumentIcon,
 } from '@heroicons/react/24/solid';
+import axios from 'axios';
 
-const MessageItem = ({ message, openImageViewer, onDelete }) => {
+const MessageItem = ({ message, openImageViewer, onDelete, onReply, onForward, onUpdate }) => {
     const currentUser = usePage().props.auth.user;
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState(message.message || '');
 
     const formatFileSize = (bytes) => {
         if (!bytes || bytes === 0) return '0 B';
@@ -29,6 +32,36 @@ const MessageItem = ({ message, openImageViewer, onDelete }) => {
     // Separate images from other attachments
     const imageAttachments = message.attachments?.filter(isImage) || [];
     const otherAttachments = message.attachments?.filter(a => !isImage(a)) || [];
+
+    const handleJumpToParent = (e) => {
+        e.preventDefault();
+        if (!message.parent_id) return;
+        const parentElement = document.getElementById(`message-${message.parent_id}`);
+        if (parentElement) {
+            parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add visual flash highlight
+            parentElement.classList.add('bg-slate-700/50', 'transition-colors', 'duration-500');
+            setTimeout(() => {
+                parentElement.classList.remove('bg-slate-700/50');
+            }, 1500);
+        }
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editText.trim()) return;
+
+        try {
+            const response = await axios.patch(route('message.update', message.id), {
+                message: editText,
+            });
+            onUpdate?.(response.data);
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Failed to edit message:', error);
+            alert(error.response?.data?.message || 'Failed to edit message. Please try again.');
+        }
+    };
 
     // Get image grid layout class based on count (like WhatsApp/Telegram)
     const getImageGridClass = (count) => {
@@ -127,39 +160,72 @@ const MessageItem = ({ message, openImageViewer, onDelete }) => {
         );
     };
 
+    const isOwnMessage = message.sender_id === currentUser.id;
+
     return (
         <div
+            id={`message-${message.id}`}
             className={
                 'chat group ' +
-                (message.sender_id === currentUser.id
-                    ? 'chat-end'
-                    : 'chat-start')
+                (isOwnMessage ? 'chat-end' : 'chat-start')
             }
         >
             <div className="chat-image avatar">
                 <UserAvatar user={message.sender} />
             </div>
             <div className="chat-header">
-                {message.sender_id !== currentUser.id
-                    ? message.sender.name
-                    : ''}
+                {!isOwnMessage ? message.sender.name : ''}
                 <time className="text-xs opacity-50 ml-2">
                     {formatMessageDateLong(message.created_at)}
+                    {message.is_edited && <span className="ml-1 text-[10px] italic opacity-70">(edited)</span>}
                 </time>
             </div>
             <div className="flex items-center gap-1">
-                {/* Delete dropdown for own messages - appears on left side of bubble */}
-                {message.sender_id === currentUser.id && (
-                    <MessageOptionsDropdown message={message} onDelete={onDelete} />
+                {/* Options dropdown for own messages (left of bubble) */}
+                {isOwnMessage && (
+                    <MessageOptionsDropdown 
+                        message={message} 
+                        onDelete={onDelete} 
+                        onReply={onReply}
+                        onForward={onForward}
+                        onStartEdit={() => {
+                            setEditText(message.message || '');
+                            setIsEditing(true);
+                        }}
+                    />
                 )}
+                
                 <div
                     className={
                         'chat-bubble relative max-w-sm ' +
-                        (message.sender_id === currentUser.id
-                            ? 'chat-bubble-info'
-                            : '')
+                        (isOwnMessage ? 'chat-bubble-info' : '')
                     }
                 >
+                    {/* Forwarded Badge */}
+                    {message.is_forwarded && (
+                        <div className="flex items-center gap-1 text-[10px] text-slate-200/90 mb-1.5 italic font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-slate-350">
+                                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Forwarded
+                        </div>
+                    )}
+
+                    {/* Reply Quotation Box */}
+                    {message.parent && (
+                        <div 
+                            onClick={handleJumpToParent}
+                            className="bg-black/20 border-l-4 border-info rounded px-2 py-1 mb-2 text-xs cursor-pointer hover:bg-black/30 transition-colors max-w-full truncate"
+                        >
+                            <div className="font-bold text-gray-300 truncate">
+                                {message.parent.sender_id === currentUser.id ? 'You' : message.parent.sender.name}
+                            </div>
+                            <div className="text-gray-400 truncate">
+                                {message.parent.message || 'Attachment'}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Image Grid */}
                     {renderImageGrid()}
 
@@ -168,30 +234,71 @@ const MessageItem = ({ message, openImageViewer, onDelete }) => {
                         renderOtherAttachment(attachment, index)
                     )}
 
-                    {/* Message Text */}
-                    {message.message && (
-                        <div className="chat-message">
-                            <div className="chat-message-content markdown-message">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    components={{
-                                        a(props) {
-                                            return (
-                                                <a
-                                                    {...props}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                />
-                                            )
-                                        }
-                                    }}
+                    {/* Inline Editing vs Standard Message Text */}
+                    {isEditing ? (
+                        <div className="w-[260px] md:w-[320px] p-1">
+                            <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full rounded-lg bg-slate-950/75 border border-slate-750/70 text-slate-100 text-sm p-2 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-none"
+                                rows={3}
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-1.5 mt-2">
+                                <button 
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-white/10 transition-colors"
                                 >
-                                    {message.message}
-                                </ReactMarkdown>
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={handleSaveEdit}
+                                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    disabled={!editText.trim() || editText === message.message}
+                                >
+                                    Save
+                                </button>
                             </div>
                         </div>
+                    ) : (
+                        message.message && (
+                            <div className="chat-message">
+                                <div className="chat-message-content markdown-message">
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            a(props) {
+                                                return (
+                                                    <a
+                                                        {...props}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    />
+                                                )
+                                            }
+                                        }}
+                                    >
+                                        {message.message}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        )
                     )}
                 </div>
+
+                {/* Options dropdown for received messages (right of bubble) */}
+                {!isOwnMessage && (
+                    <MessageOptionsDropdown 
+                        message={message} 
+                        onDelete={onDelete} 
+                        onReply={onReply}
+                        onForward={onForward}
+                        onStartEdit={() => {
+                            setEditText(message.message || '');
+                            setIsEditing(true);
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
