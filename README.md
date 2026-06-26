@@ -497,7 +497,7 @@ pulse-messenger/
 
 - [ ] **Advanced Features**
   - [ ] Push notifications
-  - [ ] Desktop notifications
+  - [x] Desktop notifications
   - [ ] Message reactions (emoji)
   - [ ] Pin important messages
   - [ ] Starred messages

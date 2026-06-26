@@ -35,7 +35,18 @@ export default function AuthenticatedLayout({ header, children }) {
             });
     };
 
-    // Listen for new message notifications and show toast
+    // Request Desktop Notification Permission on Mount
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then((permission) => {
+                    console.log('Notification permission status:', permission);
+                });
+            }
+        }
+    }, []);
+
+    // Listen for new message notifications and show toast + desktop notification
     useEffect(() => {
         const offNotification = on('newMessageNotification', (data) => {
             // Check if the message is from the currently selected conversation
@@ -55,18 +66,49 @@ export default function AuthenticatedLayout({ header, children }) {
 
             // Show toast only if NOT from the current conversation
             if (!isCurrentConversation) {
-                const senderName = data.user.name.split(' ')[0];
+                const senderNameName = data.user.name.split(' ')[0];
                 const messagePreview = data.message.length > 50
                     ? data.message.substring(0, 50) + '...'
                     : data.message;
-                showToast(`${senderName}: ${messagePreview}`, { isGroup: !!data.group_id });
+                showToast(`${senderNameName}: ${messagePreview}`, { isGroup: !!data.group_id });
+            }
+
+            // Trigger desktop notification if:
+            // 1. Conversation is not the current active one OR the tab is in the background/hidden.
+            // 2. Permission is granted.
+            const shouldNotify = !isCurrentConversation || document.hidden;
+            if (shouldNotify && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                const senderName = data.user.name;
+                const messagePreview = data.message.length > 80
+                    ? data.message.substring(0, 80) + '...'
+                    : data.message;
+
+                const groupName = conversations.find(c => c.is_group && parseInt(c.id) === parseInt(data.group_id))?.name || 'Group';
+                const title = data.group_id ? groupName : senderName;
+                const body = data.group_id ? `${senderName.split(' ')[0]}: ${messagePreview}` : messagePreview;
+
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: data.user.avatar_url || '/images/logo.png',
+                });
+
+                notification.onclick = () => {
+                    window.focus();
+                    if (!isCurrentConversation) {
+                        if (data.group_id) {
+                            router.visit(route('chat.group', data.group_id));
+                        } else {
+                            router.visit(route('chat.user', data.user.id));
+                        }
+                    }
+                };
             }
         });
 
         return () => {
             offNotification();
         };
-    }, [on, selectedConversation, showToast]);
+    }, [on, selectedConversation, showToast, conversations]);
 
     // Admin Real-time Notifications
     useEffect(() => {
