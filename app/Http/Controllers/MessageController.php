@@ -10,7 +10,9 @@ use App\Models\MessageAttachment;
 use App\Http\Requests\StoreMessageRequest;
 use App\Http\Resources\MessageResource;
 use App\Events\SocketMessage;
+use App\Notifications\NewMessagePush;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MessageController extends Controller
@@ -108,6 +110,26 @@ class MessageController extends Controller
             if($groupId){ Group::updateGroupWithMessage($groupId, $message);}
 
             $message->load('attachments');
+
+            // Send Web Push Notification to recipient(s)
+            try {
+                if ($receiverId) {
+                    $receiver = User::find($receiverId);
+                    if ($receiver) {
+                        $receiver->notify(new NewMessagePush($message));
+                    }
+                } elseif ($groupId) {
+                    $group = Group::find($groupId);
+                    if ($group) {
+                        $members = $group->users()->where('users.id', '!=', auth()->id())->get();
+                        foreach ($members as $member) {
+                            $member->notify(new NewMessagePush($message));
+                        }
+                    }
+                }
+            } catch (\Exception $pushError) {
+                Log::error('WebPush notification error: ' . $pushError->getMessage());
+            }
             
             try {
                 error_log('=== BROADCASTING MESSAGE ===');

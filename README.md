@@ -496,7 +496,7 @@ pulse-messenger/
   - [ ] Lazy loading for media
 
 - [ ] **Advanced Features**
-  - [ ] Push notifications
+  - [x] Push notifications
   - [x] Desktop notifications
   - [ ] Message reactions (emoji)
   - [ ] Pin important messages

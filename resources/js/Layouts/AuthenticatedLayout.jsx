@@ -10,6 +10,21 @@ import { useEventBus } from '@/EventBus';
 import { useToast } from '@/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
@@ -35,16 +50,61 @@ export default function AuthenticatedLayout({ header, children }) {
             });
     };
 
-    // Request Desktop Notification Permission on Mount
+    // Request Desktop Notification Permission & Register Web Push on Mount
     useEffect(() => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (typeof window === 'undefined') return;
+
+        const vapidPublicKey = page.props.vapidPublicKey;
+
+        if ('Notification' in window) {
             if (Notification.permission === 'default') {
                 Notification.requestPermission().then((permission) => {
                     console.log('Notification permission status:', permission);
+                    if (permission === 'granted') {
+                        subscribeToPushNotifications();
+                    }
                 });
+            } else if (Notification.permission === 'granted') {
+                subscribeToPushNotifications();
             }
         }
-    }, []);
+
+        function subscribeToPushNotifications() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window) || !vapidPublicKey) {
+                return;
+            }
+
+            // Register service worker
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                    return navigator.serviceWorker.ready;
+                })
+                .then((registration) => {
+                    // Check if subscription exists
+                    return registration.pushManager.getSubscription()
+                        .then(async (subscription) => {
+                            if (subscription) {
+                                return subscription;
+                            }
+                            // Create a new subscription
+                            return registration.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                            });
+                        });
+                })
+                .then((subscription) => {
+                    // Send subscription to backend
+                    axios.post(route('push.subscribe'), subscription)
+                        .then(res => console.log('Push subscription saved successfully.'))
+                        .catch(err => console.error('Error saving push subscription:', err));
+                })
+                .catch((error) => {
+                    console.error('Service Worker / Push subscription error:', error);
+                });
+        }
+    }, [page.props.vapidPublicKey]);
 
     // Listen for new message notifications and show toast + desktop notification
     useEffect(() => {

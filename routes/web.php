@@ -5,7 +5,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\HandleInertiaRequests;
 
 // Test route to verify routing works
 Route::get('/broadcasting/test', function () {
@@ -16,7 +18,7 @@ Route::get('/broadcasting/test', function () {
 // Broadcasting auth route
 Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
     ->middleware(['web', 'auth'])
-    ->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+    ->withoutMiddleware([HandleInertiaRequests::class]);
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -59,6 +61,10 @@ Route::middleware('auth')->group(function()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+
+    // Push subscriptions
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push-subscriptions/delete', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 });
 
 
