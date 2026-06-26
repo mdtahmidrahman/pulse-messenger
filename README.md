@@ -474,11 +474,11 @@ pulse-messenger/
 - [ ] **Search Functionality**
   - [ ] Search messages within conversations
   - [ ] Global message search
-  - [ ] Search users
+  - [x] Search users
 
 - [ ] **Media Enhancements**
-  - [ ] Image preview modal
-  - [ ] Video player
+  - [x] Image preview modal
+  - [x] Video player
   - [ ] Voice messages
   - [ ] GIF support
 
