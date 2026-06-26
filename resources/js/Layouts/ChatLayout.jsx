@@ -11,7 +11,7 @@ const ChatLayout = ({ children }) => {
     const [localConversations, setLocalConversations] = useState([]);
     const [sortedConversations, setSortedConversations] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState({});
-    const { on } = useEventBus();
+    const { on, emit } = useEventBus();
 
     // Sidebar Resizing Logic
     const [sidebarWidth, setSidebarWidth] = useState(300); // default md width
@@ -224,37 +224,17 @@ const ChatLayout = ({ children }) => {
     }, [localConversations]);
 
     useEffect(() => {
-        Echo.join('online')
-            .here((users) => {
-                const onlineUsersObj = Object.fromEntries(
-                    users.map((user) => [user.id, user]),
-                );
-                setOnlineUsers((prevOnlineUsers) => {
-                    return { ...prevOnlineUsers, ...onlineUsersObj };
-                });
-            })
-            .joining((user) => {
-                setOnlineUsers((prevOnlineUsers) => {
-                    const updatedUsers = { ...prevOnlineUsers };
-                    updatedUsers[user.id] = user;
-                    return updatedUsers;
-                });
-            })
-            .leaving((user) => {
-                setOnlineUsers((prevOnlineUsers) => {
-                    const updatedUsers = { ...prevOnlineUsers };
-                    delete updatedUsers[user.id];
-                    return updatedUsers;
-                });
-            })
-            .error((error) => {
-                console.log('error', error);
-            });
+        const offUpdated = on('onlineUsers.updated', (onlineUsersMap) => {
+            setOnlineUsers(onlineUsersMap);
+        });
+
+        // Request the initial list of online users from AuthenticatedLayout
+        emit('onlineUsers.request');
 
         return () => {
-            Echo.leave('online');
+            offUpdated();
         };
-    }, []);
+    }, [on, emit]);
 
     return (
         <>

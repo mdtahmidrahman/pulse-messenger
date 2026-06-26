@@ -186,6 +186,41 @@ export default function AuthenticatedLayout({ header, children }) {
         };
     }, [user.is_admin, showToast]);
 
+    // Track online users globally so the user is marked online on any authenticated page (Profile, Admin approvals, etc.)
+    useEffect(() => {
+        let onlineUsersMap = {};
+
+        Echo.join('online')
+            .here((users) => {
+                onlineUsersMap = Object.fromEntries(
+                    users.map((u) => [u.id, u])
+                );
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .joining((u) => {
+                onlineUsersMap = { ...onlineUsersMap, [u.id]: u };
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .leaving((u) => {
+                const updated = { ...onlineUsersMap };
+                delete updated[u.id];
+                onlineUsersMap = updated;
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .error((error) => {
+                console.error('Online channel error:', error);
+            });
+
+        const offRequest = on('onlineUsers.request', () => {
+            emit('onlineUsers.updated', onlineUsersMap);
+        });
+
+        return () => {
+            offRequest();
+            Echo.leave('online');
+        };
+    }, [emit, on]);
+
     useEffect(() => {
         conversations.forEach((conversation) => {
             let channel = `message.group.${conversation.id}`;
