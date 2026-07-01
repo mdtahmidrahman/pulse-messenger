@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\WebPush\Events\NotificationSent;
 use NotificationChannels\WebPush\Events\NotificationFailed;
+use Illuminate\Mail\MailManager;
+use Symfony\Component\Mailer\Transport\AbstractTransport;
+use GuzzleHttp\Client;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mime\MessageConverter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,8 +32,12 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
 
         // Ensure OpenSSL can find openssl.cnf in XAMPP Windows environment
-        if (!getenv('OPENSSL_CONF')) {
-            putenv('OPENSSL_CONF=d:\Installed_Programs\xampp\apache\conf\openssl.cnf');
+        if (function_exists('putenv') && !getenv('OPENSSL_CONF')) {
+            try {
+                @putenv('OPENSSL_CONF=d:\Installed_Programs\xampp\apache\conf\openssl.cnf');
+            } catch (\Throwable $e) {
+                // Ignore if putenv is disabled/restricted on shared hosting
+            }
         }
 
         // Listen for WebPush events to debug delivery reports
@@ -48,15 +57,15 @@ class AppServiceProvider extends ServiceProvider
         config(['mail.mailers.brevo' => ['transport' => 'brevo']]);
 
         // Register custom Brevo API Mail Transport to bypass shared hosting SMTP blocks
-        $this->app->make(\Illuminate\Mail\MailManager::class)->extend('brevo', function () {
-            return new class(new \GuzzleHttp\Client()) extends \Symfony\Component\Mailer\Transport\AbstractTransport {
-                public function __construct(private \GuzzleHttp\Client $client) {
+        $this->app->make(MailManager::class)->extend('brevo', function () {
+            return new class(new Client()) extends AbstractTransport {
+                public function __construct(private Client $client) {
                     parent::__construct();
                 }
 
-                protected function doSend(\Symfony\Component\Mailer\SentMessage $message): void
+                protected function doSend(SentMessage $message): void
                 {
-                    $email = \Symfony\Component\Mime\MessageConverter::toEmail($message->getOriginalMessage());
+                    $email = MessageConverter::toEmail($message->getOriginalMessage());
                     
                     $to = [];
                     foreach ($email->getTo() as $recipient) {
