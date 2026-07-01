@@ -26,9 +26,13 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
-    const actionUrl = event.notification.data?.url || '/';
-
-    event.waitUntil(
+let actionUrl = event.notification.data?.url || '/';
+try {
+    const url = new URL(actionUrl, self.location.origin);
+    actionUrl = url.origin === self.location.origin ? url.pathname + url.search + url.hash : '/';
+} catch {
+    actionUrl = '/';
+}
         clients.matchAll({
             type: 'window',
             includeUncontrolled: true
