@@ -217,7 +217,21 @@ class MessageController extends Controller
             'group_id' => 'required_without:receiver_id|nullable|exists:groups,id',
         ]);
 
-        $originalMessage = Message::findOrFail($request->input('message_id'));
+$originalMessage = Message::with(['group.users'])->findOrFail($request->input('message_id'));
+
+if ($originalMessage->group_id) {
+    abort_unless(
+        $originalMessage->group && $originalMessage->group->users->contains('id', auth()->id()),
+        403,
+        'Unauthorized'
+    );
+} else {
+    abort_unless(
+        in_array(auth()->id(), [$originalMessage->sender_id, $originalMessage->receiver_id], true),
+        403,
+        'Unauthorized'
+    );
+}
 
         $newMessage = Message::create([
             'message' => $originalMessage->message,
