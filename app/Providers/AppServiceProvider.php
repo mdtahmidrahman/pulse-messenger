@@ -26,10 +26,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        // Ensure OpenSSL can find openssl.cnf in XAMPP Windows environment
-        if (!getenv('OPENSSL_CONF')) {
-            putenv('OPENSSL_CONF=d:\Installed_Programs\xampp\apache\conf\openssl.cnf');
-        }
+// Ensure OpenSSL can find openssl.cnf in XAMPP Windows environment
+if (app()->environment('local') && PHP_OS_FAMILY === 'Windows' && !getenv('OPENSSL_CONF')) {
+    putenv('OPENSSL_CONF=D:\Installed_Programs\xampp\apache\conf\openssl.cnf');
+}
 
 // Listen for WebPush events to debug delivery reports
 if (config('app.debug')) {
