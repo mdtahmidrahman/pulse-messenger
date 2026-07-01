@@ -31,13 +31,15 @@ class AppServiceProvider extends ServiceProvider
             putenv('OPENSSL_CONF=d:\Installed_Programs\xampp\apache\conf\openssl.cnf');
         }
 
-        // Listen for WebPush events to debug delivery reports
-        Event::listen(NotificationSent::class, function (NotificationSent $event) {
-            Log::info('WebPush NotificationSent event payload:', json_decode(json_encode($event->report), true));
-        });
+// Listen for WebPush events to debug delivery reports
+if (config('app.debug')) {
+    Event::listen(NotificationSent::class, function (NotificationSent $event) {
+        Log::info('WebPush NotificationSent report:', json_decode(json_encode($event->report), true));
+    });
 
-        Event::listen(NotificationFailed::class, function (NotificationFailed $event) {
-            Log::error('WebPush NotificationFailed event payload:', json_decode(json_encode($event->report), true));
-        });
+    Event::listen(NotificationFailed::class, function (NotificationFailed $event) {
+        Log::error('WebPush NotificationFailed report:', json_decode(json_encode($event->report), true));
+    });
+}
     }
 }
