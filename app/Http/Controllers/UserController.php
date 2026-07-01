@@ -26,7 +26,7 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\UserCreatedMail($user, $rawPassword));
+        Mail::to($user->email)->queue(new \App\Mail\UserCreatedMail($user, $rawPassword));
 
         return redirect()->back();
     } 
@@ -60,7 +60,7 @@ class UserController extends Controller
         $user->approved_at = now();
         $user->save();
 
-        Mail::to($user->email)->send(new UserApproved($user->name));
+        Mail::to($user->email)->queue(new UserApproved($user->name));
 
         return response()->json(['message' => 'User has been approved.']);
     }
@@ -71,7 +71,7 @@ class UserController extends Controller
         $userEmail = $user->email;
         $user->delete();
 
-        Mail::to($userEmail)->send(new UserDeclined($userName));
+        Mail::to($userEmail)->queue(new UserDeclined($userName));
 
         return response()->json(['message' => 'User request has been declined and removed.']);
     }

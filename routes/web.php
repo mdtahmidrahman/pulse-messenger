@@ -31,10 +31,31 @@ Route::get('/', function () {
         'isLoggedIn' => false,
     ]);
 })->name('welcome');
-
 Route::middleware(['auth', 'verified'])->group(function()
 {
     Route::get('/chat', [HomeController::class, 'home'])->name('home');
+
+Route::get('/debug-mail', function () {
+    return response()->json([
+        'mailer' => config('mail.default'),
+        'host' => config('mail.mailers.smtp.host'),
+        'port' => config('mail.mailers.smtp.port'),
+        'username' => config('mail.mailers.smtp.username'),
+        'password_length' => strlen(config('mail.mailers.smtp.password')),
+    ]);
+});
+
+Route::get('/debug-mail-send', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('This is a test email sent synchronously from Render to verify SMTP settings!', function ($message) {
+            $message->to(config('mail.mailers.smtp.username'))
+                    ->subject('SMTP Verification Test');
+        });
+        return response()->json(['status' => 'SUCCESS', 'message' => 'Email sent to ' . config('mail.mailers.smtp.username')]);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'ERROR', 'error' => $e->getMessage()]);
+    }
+});
 
     Route::get('/user/{user}', [MessageController::class, 'byuser'])->name('chat.user');
     Route::get('/group/{group}', [MessageController::class, 'byGroup'])->name('chat.group');

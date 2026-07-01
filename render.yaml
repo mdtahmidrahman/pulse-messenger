@@ -1,0 +1,86 @@
+services:
+  - type: web
+    name: pulse-messenger
+    runtime: docker
+    plan: free
+    branch: deployment
+    envVars:
+      - key: APP_NAME
+        value: PulseMessenger
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: true
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: BROADCAST_CONNECTION
+        value: reverb
+      - key: APP_URL
+        sync: false # Render auto-generates this, user might need to update usually
+      - key: APP_KEY
+        sync: false # Must be set manually in Render Dashboard
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: pulse-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: pulse-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: pulse-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: pulse-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: pulse-db
+          property: password
+      - key: REVERB_APP_ID
+        value: 123456
+      - key: REVERB_APP_KEY
+        generateValue: true
+      - key: REVERB_APP_SECRET
+        generateValue: true
+      - key: REVERB_HOST
+        value: 0.0.0.0
+      - key: REVERB_PORT
+        value: 8080
+      - key: REVERB_SCHEME
+        value: http
+      # In production on Render with HTTPS, client connects via WSS (managed by Nginx/Cloudflare)
+      # But internally Reverb listens on HTTP.
+      # Client-side .env needs to know these.
+      - key: VITE_REVERB_APP_KEY
+        sync: false # Needs to match REVERB_APP_KEY
+      - key: VITE_REVERB_HOST
+        sync: false # Should be the Render URL
+      - key: VITE_REVERB_PORT
+        value: 443
+      - key: VITE_REVERB_SCHEME
+        value: https
+      # Admin User Seeding (Set these in Render Dashboard for security)
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: pulse-db
+    plan: free
+    databaseName: pulse
+    user: pulse
+

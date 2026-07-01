@@ -37,12 +37,28 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
             if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
+                try {
+                    $urlParts = explode('/upload/', $user->avatar);
+                    if (count($urlParts) > 1) {
+                        $pathParts = explode('/', $urlParts[1]);
+                        if (preg_match('/^v\d+$/', $pathParts[0])) {
+                            array_shift($pathParts);
+                        }
+                        $publicIdWithExt = implode('/', $pathParts);
+                        $publicId = pathinfo($publicIdWithExt, PATHINFO_FILENAME);
+                        
+                        cloudinary()->uploadApi()->destroy($publicId);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed to delete old avatar from Cloudinary: ' . $e->getMessage());
+                }
             }
             
             // Store new avatar
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $path;
+            $uploadedFile = cloudinary()->uploadApi()->upload($request->file('avatar')->getRealPath(), [
+                'folder' => 'avatars'
+            ]);
+            $validated['avatar'] = $uploadedFile['secure_url'];
         }
 
         $user->fill($validated);
@@ -64,7 +80,23 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+            try {
+                // Extract public ID from Cloudinary URL (e.g., avatars/filename)
+                $urlParts = explode('/upload/', $user->avatar);
+                if (count($urlParts) > 1) {
+                    $pathParts = explode('/', $urlParts[1]);
+                    // Remove version number (v1234) if present
+                    if (preg_match('/^v\d+$/', $pathParts[0])) {
+                        array_shift($pathParts);
+                    }
+                    $publicIdWithExt = implode('/', $pathParts);
+                    $publicId = pathinfo($publicIdWithExt, PATHINFO_FILENAME);
+                    
+                    cloudinary()->uploadApi()->destroy($publicId);
+                }
+            } catch (\Throwable $e) {
+                \Log::error('Failed to delete avatar from Cloudinary: ' . $e->getMessage());
+            }
             $user->avatar = null;
             $user->save();
         }
