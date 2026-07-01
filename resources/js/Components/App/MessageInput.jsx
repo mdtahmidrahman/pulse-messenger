@@ -12,7 +12,7 @@ import axios from 'axios';
 import { useEventBus } from '@/EventBus';
 import EmojiPicker from 'emoji-picker-react';
 
-const MessageInput = ({ conversation = null }) => {
+const MessageInput = ({ conversation = null, replyingMessage = null, setReplyingMessage = null }) => {
     const [newMessage, setNewMessage] = useState('');
     const [inputErrorMessage, setInputErrorMessage] = useState('');
     const [messageSending, setMessageSending] = useState(false);
@@ -61,6 +61,9 @@ const MessageInput = ({ conversation = null }) => {
         } else if (conversation.is_group) {
             formData.append('group_id', conversation.id);
         }
+        if (replyingMessage) {
+            formData.append('parent_id', replyingMessage.id);
+        }
 
         // Append files to FormData
         chosenFiles.forEach((file) => {
@@ -80,6 +83,7 @@ const MessageInput = ({ conversation = null }) => {
             .then((response) => {
                 setNewMessage('');
                 setChosenFiles([]);
+                setReplyingMessage?.(null);
                 setMessageSending(false);
                 emit('message.created', response.data);
             })
@@ -96,6 +100,26 @@ const MessageInput = ({ conversation = null }) => {
 
     return (
         <div className="flex flex-col border-t border-slate-700">
+            {/* Reply Preview */}
+            {replyingMessage && (
+                <div className="flex items-center justify-between bg-slate-850 px-4 py-2 border-b border-slate-700/60 transition-all animate-pop">
+                    <div className="flex flex-col border-l-4 border-cyan-400 pl-3 min-w-0">
+                        <span className="text-xs text-cyan-400 font-semibold">
+                            Replying to {replyingMessage.sender.name}
+                        </span>
+                        <span className="text-xs text-gray-300 truncate">
+                            {replyingMessage.message || 'Attachment'}
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => setReplyingMessage?.(null)}
+                        className="text-gray-400 hover:text-gray-200 transition-colors p-1"
+                    >
+                        <XMarkIcon className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
+
             {/* File Preview Badges */}
             {chosenFiles.length > 0 && (
                 <div className="flex flex-wrap gap-2 p-3 pb-0">

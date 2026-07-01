@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasPushSubscriptions;
 
     /**
      * The attributes that are mass assignable.
@@ -77,7 +78,12 @@ class User extends Authenticatable
     public static function getUsersExceptUser(User $user)
     {
         $userId = $user->id;
-        $query = User::select(['users.*', 'messages.message as last_message', 'messages.created_at as last_message_date'])
+        $query = User::select([
+            'users.*', 
+            'messages.message as last_message', 
+            'messages.created_at as last_message_date',
+            'messages.sender_id as last_message_sender_id'
+        ])
             ->where('users.id', '!=', $userId)
             ->when(!$user->is_admin, function($query){
                 $query->whereNull('users.blocked_at')
@@ -142,6 +148,7 @@ class User extends Authenticatable
             'updated_at' => $this->updated_at,
             'blocked_at' => $this->blocked_at,
             'last_message' => $this->last_message,
+            'last_message_sender_id' => $this->last_message_sender_id,
             'last_message_date' => $this->last_message_date,
             'avatar_url' => $this->avatar_url,
             'approved_at' => $this->approved_at,

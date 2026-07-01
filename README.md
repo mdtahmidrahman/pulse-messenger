@@ -30,17 +30,20 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 
 ## Live Demo
 
-**Live Link:** [https://pulse-messenger-7xex.onrender.com](https://pulse-messenger-7xex.onrender.com)
+**Live Link:** 
+[https://pulse-messenger.infinityfreeapp.com](https://pulse-messenger.infinityfreeapp.com),
+[https://pulse-messenger-7xex.onrender.com](https://pulse-messenger-7xex.onrender.com)
 
-**Demo Admin Credentials:**
-| Field | Value |
-|-------|-------|
-| Email | `test@admin.com` |
-| Password | `12121212` |
+### How Sign-up & Login Works
 
-**Demo New(any) User's Password:** 12345678
+1. **Registration**: Anyone can create an account by filling out the sign-up form.
+2. **Admin Approval**: Newly registered accounts are placed in a pending state. Admins receive real-time notifications about new sign-ups.
+3. **Approval Process**: An admin must manually review and approve the account from the "Pending Approvals" dashboard.
+4. **Email Notification**: The user receives an email once their account is approved or declined.
+5. **Login**: After approval, the user can successfully log in and start using the app.
 
-> **Note:** The free hosting runs on Render's free tier which spins down after 15 minutes of inactivity and may take ~50 seconds to wake up on first visit. Additionally, uploaded files (images, attachments) are stored in ephemeral storage and will be lost after each deployment or restart.
+
+> **Note:** The free hosting runs on Render's free tier which spins down after 15 minutes of inactivity and may take ~50 seconds to wake up on first visit.
 
 ---
 
@@ -61,12 +64,15 @@ A modern, real-time messaging application built with Laravel 12, React 18, and L
 
 ### Authentication & Authorization
 - **User Registration & Login** - Secure authentication via Laravel Breeze
-- **Email Verification** - Optional email verification support
+- **Admin Approval Workflow** - New user registrations require admin approval before login
+- **Email Notifications** - Users receive emails upon approval or denial of their accounts
 - **Password Management** - Password reset and change functionality
 - **Profile Management** - Edit profile details and delete account
 
 ### Administration
 - **Admin Dashboard** - Admin-only features for user management
+- **Pending Approvals** - Admins can approve or decline new user registrations
+- **Real-time Notifications** - Admins receive instant alerts via Echo when a new user registers
 - **Create Users** - Admins can create new user accounts via modal
 - **Role Management** - Toggle users between Admin and Regular roles
 - **Block/Unblock Users** - Suspend and reactivate user accounts
@@ -457,9 +463,9 @@ pulse-messenger/
   - [ ] Group admin/moderator roles
 
 - [ ] **Message Enhancements**
-  - [ ] Edit sent messages
-  - [ ] Reply to specific messages
-  - [ ] Forward messages to other chats
+  - [x] Edit sent messages
+  - [x] Reply to specific messages
+  - [x] Forward messages to other chats
   - [ ] Message read receipts
   - [ ] Typing indicators
 
@@ -468,16 +474,16 @@ pulse-messenger/
 - [ ] **Search Functionality**
   - [ ] Search messages within conversations
   - [ ] Global message search
-  - [ ] Search users
+  - [x] Search users
 
 - [ ] **Media Enhancements**
-  - [ ] Image preview modal
-  - [ ] Video player
+  - [x] Image preview modal
+  - [x] Video player
   - [ ] Voice messages
   - [ ] GIF support
 
 - [ ] **User Features**
-  - [ ] User avatars upload
+  - [x] User avatars upload
   - [ ] User bio/status
   - [ ] Last seen timestamps
   - [ ] Mute conversations
@@ -490,8 +496,8 @@ pulse-messenger/
   - [ ] Lazy loading for media
 
 - [ ] **Advanced Features**
-  - [ ] Push notifications
-  - [ ] Desktop notifications
+  - [x] Push notifications
+  - [x] Desktop notifications
   - [ ] Message reactions (emoji)
   - [ ] Pin important messages
   - [ ] Starred messages

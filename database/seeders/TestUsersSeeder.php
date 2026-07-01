@@ -11,23 +11,23 @@ class TestUsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin User
+// Test User 1
         User::updateOrCreate(
-            ['email' => 'admin@user.com'],
+            ['email' => 'user1@user.com'],
             [
-                'name' => 'Admin User',
+                'name' => 'User 1',
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make('12345678'),
-                'is_admin' => true,
+                'is_admin' => false,
                 'approved_at' => Carbon::now(),
             ]
         );
 
         // Normal User
         User::updateOrCreate(
-            ['email' => 'normal@user.com'],
+            ['email' => 'user2@user.com'],
             [
-                'name' => 'Normal User',
+                'name' => 'User 2',
                 'email_verified_at' => Carbon::now(),
                 'password' => Hash::make('12345678'),
                 'is_admin' => false,

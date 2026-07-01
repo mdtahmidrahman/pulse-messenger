@@ -49,7 +49,8 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (is_null(Auth::user()->approved_at)) {
+        $isSqlite = config('database.default') === 'sqlite';
+        if (is_null(Auth::user()->approved_at) && !Auth::user()->is_admin && !$isSqlite) {
             Auth::logout();
 
             throw ValidationException::withMessages([

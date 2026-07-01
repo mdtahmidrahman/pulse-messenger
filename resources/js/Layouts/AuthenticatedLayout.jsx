@@ -10,6 +10,21 @@ import { useEventBus } from '@/EventBus';
 import { useToast } from '@/ToastContext';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 export default function AuthenticatedLayout({ header, children }) {
     const page = usePage();
     const user = page.props.auth.user;
@@ -35,7 +50,63 @@ export default function AuthenticatedLayout({ header, children }) {
             });
     };
 
-    // Listen for new message notifications and show toast
+    // Request Desktop Notification Permission & Register Web Push on Mount
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const vapidPublicKey = page.props.vapidPublicKey;
+
+        if ('Notification' in window) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then((permission) => {
+                    console.log('Notification permission status:', permission);
+                    if (permission === 'granted') {
+                        subscribeToPushNotifications();
+                    }
+                });
+            } else if (Notification.permission === 'granted') {
+                subscribeToPushNotifications();
+            }
+        }
+
+        function subscribeToPushNotifications() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window) || !vapidPublicKey) {
+                return;
+            }
+
+            // Register service worker
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                    return navigator.serviceWorker.ready;
+                })
+                .then((registration) => {
+                    // Check if subscription exists
+                    return registration.pushManager.getSubscription()
+                        .then(async (subscription) => {
+                            if (subscription) {
+                                return subscription;
+                            }
+                            // Create a new subscription
+                            return registration.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                            });
+                        });
+                })
+                .then((subscription) => {
+                    // Send subscription to backend
+                    axios.post(route('push.subscribe'), subscription)
+                        .then(res => console.log('Push subscription saved successfully.'))
+                        .catch(err => console.error('Error saving push subscription:', err));
+                })
+                .catch((error) => {
+                    console.error('Service Worker / Push subscription error:', error);
+                });
+        }
+    }, [page.props.vapidPublicKey]);
+
+    // Listen for new message notifications and show toast + desktop notification
     useEffect(() => {
         const offNotification = on('newMessageNotification', (data) => {
             // Check if the message is from the currently selected conversation
@@ -55,18 +126,49 @@ export default function AuthenticatedLayout({ header, children }) {
 
             // Show toast only if NOT from the current conversation
             if (!isCurrentConversation) {
-                const senderName = data.user.name.split(' ')[0];
+                const senderNameName = data.user.name.split(' ')[0];
                 const messagePreview = data.message.length > 50
                     ? data.message.substring(0, 50) + '...'
                     : data.message;
-                showToast(`${senderName}: ${messagePreview}`, { isGroup: !!data.group_id });
+                showToast(`${senderNameName}: ${messagePreview}`, { isGroup: !!data.group_id });
+            }
+
+            // Trigger desktop notification if:
+            // 1. Conversation is not the current active one OR the tab is in the background/hidden.
+            // 2. Permission is granted.
+            const shouldNotify = !isCurrentConversation || document.hidden;
+            if (shouldNotify && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                const senderName = data.user.name;
+                const messagePreview = data.message.length > 80
+                    ? data.message.substring(0, 80) + '...'
+                    : data.message;
+
+                const groupName = conversations.find(c => c.is_group && parseInt(c.id) === parseInt(data.group_id))?.name || 'Group';
+                const title = data.group_id ? groupName : senderName;
+                const body = data.group_id ? `${senderName.split(' ')[0]}: ${messagePreview}` : messagePreview;
+
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: data.user.avatar_url || '/images/logo.png',
+                });
+
+                notification.onclick = () => {
+                    window.focus();
+                    if (!isCurrentConversation) {
+                        if (data.group_id) {
+                            router.visit(route('chat.group', data.group_id));
+                        } else {
+                            router.visit(route('chat.user', data.user.id));
+                        }
+                    }
+                };
             }
         });
 
         return () => {
             offNotification();
         };
-    }, [on, selectedConversation, showToast]);
+    }, [on, selectedConversation, showToast, conversations]);
 
     // Admin Real-time Notifications
     useEffect(() => {
@@ -83,6 +185,41 @@ export default function AuthenticatedLayout({ header, children }) {
             Echo.leave('admin.notifications');
         };
     }, [user.is_admin, showToast]);
+
+    // Track online users globally so the user is marked online on any authenticated page (Profile, Admin approvals, etc.)
+    useEffect(() => {
+        let onlineUsersMap = {};
+
+        Echo.join('online')
+            .here((users) => {
+                onlineUsersMap = Object.fromEntries(
+                    users.map((u) => [u.id, u])
+                );
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .joining((u) => {
+                onlineUsersMap = { ...onlineUsersMap, [u.id]: u };
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .leaving((u) => {
+                const updated = { ...onlineUsersMap };
+                delete updated[u.id];
+                onlineUsersMap = updated;
+                emit('onlineUsers.updated', onlineUsersMap);
+            })
+            .error((error) => {
+                console.error('Online channel error:', error);
+            });
+
+        const offRequest = on('onlineUsers.request', () => {
+            emit('onlineUsers.updated', onlineUsersMap);
+        });
+
+        return () => {
+            offRequest();
+            Echo.leave('online');
+        };
+    }, [emit, on]);
 
     useEffect(() => {
         conversations.forEach((conversation) => {
@@ -121,6 +258,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                 : message.attachments.length + ' attachments'
                             }`,
                     });
+                })
+                .listen('SocketMessageUpdated', (e) => {
+                    console.log('SocketMessageUpdated', e);
+                    emit('message.updated', e.message);
                 })
                 .listen('SocketMessageDeleted', (e) => {
                     console.log('SocketMessageDeleted', e);
