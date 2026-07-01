@@ -36,8 +36,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'conversations' => Auth::id() ? Conversation::getConversationsForSidebar(Auth::user()) : [],
-            'vapidPublicKey' => env('VAPID_PUBLIC_KEY'),
-        ];
+'conversations' => Auth::id() ? Conversation::getConversationsForSidebar(Auth::user()) : [],
+'vapidPublicKey' => config('webpush.vapid.public_key'),
     }
 }
