@@ -7,6 +7,8 @@ services:
     envVars:
       - key: APP_NAME
         value: PulseMessenger
+      - key: VITE_APP_NAME
+        value: Pulse Messenger
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
