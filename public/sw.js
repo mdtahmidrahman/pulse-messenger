@@ -33,6 +33,8 @@ try {
 } catch {
     actionUrl = '/';
 }
+
+    event.waitUntil(
         clients.matchAll({
             type: 'window',
             includeUncontrolled: true
