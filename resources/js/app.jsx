@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { EventBusProvider } from './EventBus';
 import { ToastProvider } from './ToastContext';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Pulse Messenger';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

@@ -16,7 +16,18 @@ self.addEventListener('push', function (event) {
         };
 
         event.waitUntil(
-            self.registration.showNotification(title, options)
+            clients.matchAll({
+                type: 'window',
+                includeUncontrolled: true
+            }).then(function (clientList) {
+                // If the app is open in any tab, suppress the background push notification.
+                // The active tab's WebSocket / Echo listener will handle it.
+                if (clientList && clientList.length > 0) {
+                    console.log('App tab is open. Suppressing push notification.');
+                    return;
+                }
+                return self.registration.showNotification(title, options);
+            })
         );
     } catch (e) {
         console.error('Error handling push event:', e);
@@ -26,13 +37,9 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
     event.notification.close();
 
-let actionUrl = event.notification.data?.url || '/';
-try {
-    const url = new URL(actionUrl, self.location.origin);
-    actionUrl = url.origin === self.location.origin ? url.pathname + url.search + url.hash : '/';
-} catch {
-    actionUrl = '/';
-}
+    const actionUrl = event.notification.data?.url || '/';
+
+    event.waitUntil(
         clients.matchAll({
             type: 'window',
             includeUncontrolled: true

@@ -286,7 +286,7 @@ export default function AuthenticatedLayout({ header, children }) {
         };
     }, [conversations]);
     return (
-        <div className="h-screen flex flex-col bg-base-200 overflow-hidden">
+        <div className="h-screen h-[100dvh] flex flex-col bg-base-200 overflow-hidden">
             <nav className="border-b border-base-300 bg-base-100">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -450,59 +450,131 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </div>
 
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden z-30 relative bg-base-200 shadow-inner'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('home')}
-                            active={route().current('home')}
+                {/* Mobile Slide-in Drawer Navigation */}
+                {showingNavigationDropdown && (
+                    <>
+                        {/* Backdrop */}
+                        <div 
+                            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm sm:hidden animate-fade-in"
+                            onClick={() => setShowingNavigationDropdown(false)}
+                        />
+                        
+                        {/* Drawer Panel */}
+                        <div 
+                            className="fixed top-0 right-0 bottom-0 z-50 w-72 h-full bg-[#1e293b] border-l border-slate-700/60 shadow-2xl flex flex-col sm:hidden animate-slide-left"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            Home
-                        </ResponsiveNavLink>
-                        {!!user.is_admin && (
-                            <ResponsiveNavLink
-                                href={route('admin.approvals')}
-                                active={route().current('admin.approvals')}
-                                className="flex items-center gap-2"
-                            >
-                                Pending Approvals
-                                {pendingUsers.length > 0 && (
-                                    <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                                        {pendingUsers.length}
-                                    </span>
+                            {/* Drawer Header */}
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-850">
+                                <div className="flex items-center gap-2">
+                                    <ApplicationLogo className="h-8 w-auto fill-current text-white" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {!!user.is_admin && (
+                                        <button
+                                            onClick={() => { setShowUserModal(true); setShowingNavigationDropdown(false); }}
+                                            className="p-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                            title="Add New User"
+                                        >
+                                            <UserPlusIcon className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => setShowingNavigationDropdown(false)}
+                                        className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Drawer Content */}
+                            <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+                                <Link
+                                    href={route('home')}
+                                    onClick={() => setShowingNavigationDropdown(false)}
+                                    className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                                        route().current('home')
+                                            ? 'bg-slate-800 text-white'
+                                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                    }`}
+                                >
+                                    Home
+                                </Link>
+
+                                {!!user.is_admin && (
+                                    <Link
+                                        href={route('admin.approvals')}
+                                        onClick={() => setShowingNavigationDropdown(false)}
+                                        className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                                            route().current('admin.approvals')
+                                                ? 'bg-slate-800 text-white'
+                                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                        }`}
+                                    >
+                                        <span>Pending Approvals</span>
+                                        {pendingUsers.length > 0 && (
+                                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                                {pendingUsers.length}
+                                            </span>
+                                        )}
+                                    </Link>
                                 )}
-                            </ResponsiveNavLink>
-                        )}
-                    </div>
 
-                    <div className="border-t border-base-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-base-content">
-                                {user.name}
+                                <div className="border-t border-slate-800 my-4 pt-4">
+                                    <h5 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider px-4 mb-2">
+                                        Account
+                                    </h5>
+                                    <Link
+                                        href={route('profile.edit')}
+                                        onClick={() => setShowingNavigationDropdown(false)}
+                                        className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                                            route().current('profile.edit')
+                                                ? 'bg-slate-800 text-white'
+                                                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                        }`}
+                                    >
+                                        Profile
+                                    </Link>
+                                    <Link
+                                        method="post"
+                                        href={route('logout')}
+                                        as="button"
+                                        onClick={() => setShowingNavigationDropdown(false)}
+                                        className="flex w-full items-center px-4 py-3 rounded-xl text-sm font-semibold text-red-400 hover:bg-slate-800 hover:text-red-300 transition-colors text-left"
+                                    >
+                                        Log Out
+                                    </Link>
+                                </div>
                             </div>
-                            <div className="text-sm font-medium text-base-content/70">
-                                {user.email}
+
+                            {/* Drawer Footer */}
+                            <div className="p-4 border-t border-slate-800 bg-[#131b2e] flex items-center gap-3">
+                                {user.avatar_url ? (
+                                    <img
+                                        src={user.avatar_url}
+                                        alt={user.name}
+                                        className="w-10 h-10 rounded-full object-cover shrink-0"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-slate-750 text-slate-200 flex items-center justify-center font-bold text-sm select-none shrink-0">
+                                        {user.name[0].toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-sm font-semibold text-slate-200 truncate">
+                                        {user.name}
+                                    </span>
+                                    <span className="text-xs text-slate-400 truncate">
+                                        {user.email}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
+                    </>
+                )}
             </nav>
 
             {header && (

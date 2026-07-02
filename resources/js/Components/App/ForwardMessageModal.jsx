@@ -41,7 +41,7 @@ const ForwardMessageModal = ({ message, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="flex flex-col w-full max-w-md bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden max-h-[85vh]">
+            <div className="flex flex-col w-full max-w-md bg-[#1e293b] border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden max-h-[85vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/60">
                     <h3 className="text-lg font-bold text-gray-100">Forward Message</h3>
@@ -54,7 +54,7 @@ const ForwardMessageModal = ({ message, onClose }) => {
                 </div>
 
                 {/* Preview of Forwarded Message */}
-                <div className="px-6 py-3 bg-slate-850/50 border-b border-slate-700/40 text-xs">
+                <div className="px-6 py-3 bg-[#131b2e]/50 border-b border-slate-700/40 text-xs">
                     <span className="text-gray-400 font-semibold uppercase tracking-wider block mb-1">Preview</span>
                     <div className="text-gray-300 italic truncate max-w-full">
                         {message.message || (message.attachments?.length > 0 ? `${message.attachments.length} attachment(s)` : 'Attachment')}
@@ -63,7 +63,7 @@ const ForwardMessageModal = ({ message, onClose }) => {
 
                 {/* Search Box */}
                 <div className="px-6 py-3">
-                    <div className="relative flex items-center bg-slate-800 border border-slate-700 rounded-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
+                    <div className="relative flex items-center bg-[#0f172a] border border-slate-700 rounded-xl focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition-all">
                         <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 ml-3 shrink-0" />
                         <input
                             type="text"
